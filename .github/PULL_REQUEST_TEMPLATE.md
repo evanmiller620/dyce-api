@@ -1,7 +1,3 @@
-### Review Metadata
-- **Related Issue(s)**: [Link to related issues or tasks]
-- **Description**: [Short description of the changes]
-
 ### Review Checklist
 - [ ] Code is readable and well-commented
 - [ ] Functionality works as expected
