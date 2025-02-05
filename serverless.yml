@@ -1,0 +1,21 @@
+# "org" ensures this Service is used with the correct Serverless Framework Access Key.
+org: dyceapi
+# "app" enables Serverless Framework Dashboard features and sharing them with other Services.
+app: dyceapi
+service: express-api
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: us-east-1
+  stage: dev
+
+functions:
+  app:
+    handler: index.handler
+    events:
+      - http:
+          path: /
+          method: GET
+      - http:
+          path: "{proxy+}" # catch-all route
+          method: ANY
