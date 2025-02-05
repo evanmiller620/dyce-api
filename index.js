@@ -25,6 +25,8 @@ app.get("/", (req, res) => {
   res.json({ message: "API root connection" });
 });
 
+let server;
+
 if (process.env.AWS_EXECUTION_ENV) {
   // Running in AWS Lambda
   const server = awsServerlessExpress.createServer(app);
@@ -33,9 +35,9 @@ if (process.env.AWS_EXECUTION_ENV) {
   };
 } else {
   // Running locally
-  app.listen(PORT, () => {
+  server = app.listen(PORT, () => {
     console.log(`Example app listening on port ${PORT}`);
   });
 }
 
-export default app;
+export {app, server};
