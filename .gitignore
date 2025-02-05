@@ -1,2 +1,4 @@
 .env
+.serverless
+.gitignore
 node_modules

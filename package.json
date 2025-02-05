@@ -3,15 +3,26 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "type": "module",
   "directories": {
     "test": "test"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node index.js",
+    "test": "mocha 'tests/**/*.cjs' --timeout 2000"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "ethers": "^6.13.5"
+    "aws-serverless-express": "^3.4.0",
+    "body-parser": "^1.20.3",
+    "ethers": "^6.13.5",
+    "express": "^4.21.2",
+    "serverless": "^4.5.2"
+  },
+  "devDependencies": {
+    "chai": "^4.3.7",
+    "chai-http": "^4.3.0",
+    "mocha": "^10.2.0"
   }
 }
