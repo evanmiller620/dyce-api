@@ -28,7 +28,7 @@ jobs:
         run: npm test
       
       - name: Upload Test Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: test-artifacts
           path: ./test-output/*
@@ -63,7 +63,7 @@ jobs:
         run: npx serverless deploy --verbose
 
       - name: Upload Deployment Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: deploy-artifacts
           path: ./serverless-output/*
