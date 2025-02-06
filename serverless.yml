@@ -5,10 +5,6 @@ app: dyceapi
 service: express-api
 provider:
   name: aws
-  apiGateway:
-    disableDefaultEndpoint: true
-    metrics: false
-    loggingLevel: OFF
   runtime: nodejs18.x
   region: us-east-1
   stage: dev
