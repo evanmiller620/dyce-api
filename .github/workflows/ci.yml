@@ -31,7 +31,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: test-artifacts
-          path: ./test-output/*
+          path: ./test-output/output.txt
 
   deploy:
     needs: test
@@ -66,4 +66,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: deploy-artifacts
-          path: ./serverless-output/*
+          path: ./serverless-output/output.txt
