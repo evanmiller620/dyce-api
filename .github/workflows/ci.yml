@@ -41,8 +41,8 @@ jobs:
         with:
           node-version: '18'
 
-      - name: Install Dependencies
-        run: npm install
+      - name: Install Serverless v3 (to avoid login requirement)
+        run: npm install -g serverless@3
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
