@@ -5,7 +5,7 @@ We are building an API that fundamentally changes how users pay for online servi
 
 This API aims to simplify cryptocurrency payments for businesses and users, providing essential features like **subscriptions**, **pay-as-you-go services**, and **transaction tracking**.
 
----
+--- 
 
 ## **Core Features**
 The minimum viable product (MVP) will include the following core features:
