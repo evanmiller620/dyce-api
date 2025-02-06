@@ -17,11 +17,11 @@
     "aws-serverless-express": "^3.4.0",
     "body-parser": "^1.20.3",
     "ethers": "^6.13.5",
-    "express": "^4.21.2",
-    "serverless": "^4.5.2"
+    "express": "^4.21.2"
   },
   "devDependencies": {
     "jest": "^29.7.0",
+    "serverless": "^4.6.1",
     "supertest": "^7.0.0"
   }
 }
