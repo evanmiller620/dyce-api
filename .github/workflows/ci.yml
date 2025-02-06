@@ -52,4 +52,4 @@ jobs:
           aws-region: us-east-1
 
       - name: Deploy to AWS Lambda
-        run: npx serverless deploy
+        run: npx serverless deploy --org dyceapi --app express-api --param="${{ secrets.SERVERLESS_ACCESS_KEY }}" --stage dev --region us-east-1
