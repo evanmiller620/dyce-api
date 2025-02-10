@@ -26,13 +26,16 @@ jobs:
 
       - name: Run Tests
         run: npm test
+
+      - name: Run ESLint
+        run: npm run lint
       
       - name: Upload Test Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: test-artifacts
           path: ./test-output/output.txt
-
+  
   deploy:
     needs: test
     runs-on: ubuntu-latest

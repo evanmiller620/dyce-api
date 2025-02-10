@@ -1,4 +1,6 @@
 import { ethers } from "https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.5/ethers.js";
+const window = globalThis;
+const document = window.document;
 
 const provider = new ethers.BrowserProvider(window.ethereum);
 let signer, address;
