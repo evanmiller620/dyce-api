@@ -1,0 +1,132 @@
+.key-manager-wrapper {
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    background: #ffffff;
+    padding: 20px;
+    width: 280px;
+    height: 575px;
+    display: flex;
+    flex-direction: column;
+}
+
+.key-manager-wrapper * {
+    margin: 5px;
+}
+
+.header-container {
+    display: flex;
+    justify-content: space-between;
+    align-content: center;
+}
+
+.header-container button {
+    background-color: #00a2ff;
+    color: white;
+    border-radius: 5px;
+    height: min-content;
+    padding: 10px;
+    border: none;
+    align-self: center;
+}
+
+.api-key-list {
+    overflow-y: auto;
+}
+
+.api-key-entry {
+    background-color: #007bff;
+    color: white;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    padding: 5px;
+}
+
+.api-key-entry #name {
+    width: 100px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+.api-key-entry #key {
+    width:  100px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+.api-key-entry #trash {
+    align-self: flex-end;
+    display: inline-flex;
+    width: 30px;
+    height: 30px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 5px;
+    border: none;
+    background-color: #007bff;
+}
+
+.popup-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.5);
+    margin: 0;
+}
+
+.popup {
+    display: flex;
+    flex-direction: column;
+    background-color: white;
+    border-radius: 10px;
+    padding: 10px;
+}
+
+.popup .inputs {
+    display: flex;
+    align-items: center;
+}
+
+.popup input {
+    padding: 12px;
+    padding-right: 50px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.popup * {
+    font-size: 16px;
+}
+
+.popup button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.popup #copy {
+    width: 40px;
+    height: 40px;
+    margin-left: -50px;
+    background-color: transparent;
+}
+
+.popup #copy:hover {
+    background-color: rgba(0, 0, 0, 0.2);
+}
+
+.popup #copy:active {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+.popup .error-message {
+    color: red;
+    font-size: 14px;
+    align-self: flex-start;
+    margin: 5px;
+}

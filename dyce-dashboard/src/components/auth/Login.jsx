@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import PropTypes from 'prop-types'
-import '../assets/styles/Login.css'
+import '@/assets/styles/Login.css'
 import { useAuth } from './AuthContext';
 
 async function loginUser(credentials) {
@@ -12,9 +12,8 @@ async function loginUser(credentials) {
   });
   
   const data = await response.json();
-  if (!response.ok) {
+  if (!response.ok)
     throw new Error(data?.message || `Error: ${response.status}`);
-  }
   return data;
 }
 

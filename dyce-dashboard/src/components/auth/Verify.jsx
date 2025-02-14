@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import '../assets/styles/Verify.css'
+import '@/assets/styles/Verify.css'
 import { useAuth } from './AuthContext';
 import { useLocation } from 'react-router-dom';
 

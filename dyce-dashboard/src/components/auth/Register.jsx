@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import PropTypes from 'prop-types'
 import { useNavigate } from 'react-router-dom'
-import '../assets/styles/Login.css'
+import '@/assets/styles/Login.css'
 import { PasswordChecklist } from './PasswordChecklist';
 
 async function registerUser(credentials) {

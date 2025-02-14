@@ -6,14 +6,14 @@
     background: #ffffff;
 }
 
-form {
+.login-wrapper form {
     width: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
 }
 
-input {
+.login-wrapper input {
     width: 90%;
     padding: 12px;
     border: 1px solid #ccc;
@@ -23,7 +23,7 @@ input {
     margin: 10px auto;
 }
 
-button {
+.login-wrapper button {
     width: 90%;
     background-color: #007bff;
     color: white;
@@ -36,51 +36,38 @@ button {
     margin: 10px auto;
 }
 
-button:hover {
-    background-color: #0056b3;
-}
-
-button:disabled {
+.login-wrapper button:disabled {
     background-color: #007bff;
     opacity: 0.7;
     cursor: wait;
 }
 
-.error-message {
+.login-wrapper .error-message {
     color: red;
     font-size: 14px;
     align-self: flex-start;
     margin: 5px;
 }
 
-.error {
+.login-wrapper .error {
     border-color: red;
 }
 
-.error::placeholder {
+.login-wrapper .error::placeholder {
     color: red;
     opacity: 0.7;
 }
 
-a {
+.login-wrapper a {
     font-size: 14px;
     color: #5681ae;
     align-self: flex-start;
     margin: 5px;
 }
 
-p {
+.login-wrapper p {
     font-size: 14px;
     margin: 5px;
-}
-
-body {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    background-color: #f4f4f4;
-    margin: 0;
 }
 
 .password-checklist {
