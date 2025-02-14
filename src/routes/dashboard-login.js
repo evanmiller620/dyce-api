@@ -14,14 +14,7 @@ mongoose.connect(process.env.DB_STRING)
 .then(() => console.log("Connected to MongoDB"))
 .catch((err) => console.error("MongoDB connection error:", err));
 
-// Define MongoDB user data fields
-const userSchema = new mongoose.Schema({
-    email: { type: String, unique: true },
-    password: String,
-    verified: Boolean,
-    verificationToken: String
-});
-const User = mongoose.model("User", userSchema)
+const User = mongoose.models.User; // Should fix later, relies on this script running after dashboard.js
 
 // Define sign up fields
 const signUpSchema = z.object({
