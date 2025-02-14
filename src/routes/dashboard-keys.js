@@ -1,3 +1,4 @@
+import User from "../schemas/userSchema.js";
 import express from "express";
 import mongoose from "mongoose";
 import crypto from "crypto";
@@ -10,20 +11,6 @@ const router = express.Router();
 mongoose.connect(process.env.DB_STRING)
 .then(() => console.log("Connected to MongoDB"))
 .catch((err) => console.error("MongoDB connection error:", err));
-
-// Define MongoDB user data fields
-const userSchema = new mongoose.Schema({
-    email: { type: String, unique: true },
-    password: String,
-    verified: Boolean,
-    verificationToken: String,
-    apiKeys: [{
-        name: String,
-        key: { type: String, unique: true },
-        useCount: { type: Number, default: 0 }
-    }]
-});
-const User = mongoose.model("User", userSchema)
 
 // Middleware requiring authentication
 const requireAuth = async (req, res, next) => {
@@ -56,7 +43,7 @@ router.post("/generate-api-key", requireAuth, async (req, res) => {
 // Get API keys route
 router.get("/get-api-keys", requireAuth, async (req, res) => {
     console.log("Received get keys request");
-    
+
     const formattedKeys = req.user.apiKeys.map(({ name, key, useCount }) => ({
         name,
         key: `${key.slice(0, 4)}...${key.slice(-4)}`,

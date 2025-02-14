@@ -1,3 +1,4 @@
+import User from "../schemas/userSchema.js";
 import express from "express";
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
@@ -13,8 +14,6 @@ const router = express.Router();
 mongoose.connect(process.env.DB_STRING)
 .then(() => console.log("Connected to MongoDB"))
 .catch((err) => console.error("MongoDB connection error:", err));
-
-const User = mongoose.models.User; // Should fix later, relies on this script running after dashboard.js
 
 // Define sign up fields
 const signUpSchema = z.object({
