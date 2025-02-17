@@ -1,9 +1,12 @@
 import express from "express";
+import session from "express-session";
+import MongoStore from "connect-mongo";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import awsServerlessExpress from "aws-serverless-express";
-import bodyParser from "body-parser";
+import dotenv from "dotenv";
+dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -11,7 +14,19 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(bodyParser.json());
+if (!process.env.AWS_EXECUTION_ENV)
+  import("cors").then(({ default: cors }) => { app.use(cors({ origin: 'http://localhost:5173', credentials: true })); });
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(
+  session({
+    secret: process.env.SECRET,
+    resave: false,
+    saveUninitialized: false,
+    store: MongoStore.create({ mongoUrl: process.env.DB_STRING }),
+  })
+);
 
 const routesPath = path.join(__dirname, "src/routes");
 fs.readdirSync(routesPath).forEach((file) => {
