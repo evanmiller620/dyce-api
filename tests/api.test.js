@@ -1,5 +1,5 @@
 import request from "supertest";
-import {app,server} from "../index"; // Assuming the app is exported from index.js
+import {app,server} from "../index.js"; // Assuming the app is exported from index.js
 
 describe("Root endpoint", () => {
   it("should return 200 for GET /", async () => {

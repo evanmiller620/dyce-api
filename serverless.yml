@@ -7,7 +7,26 @@ provider:
   name: aws
   runtime: nodejs18.x
   region: us-east-1
-  stage: dev
+  stage: main
+  stackName: dyce-api-main
+
+plugins:
+  - serverless-domain-manager
+
+# https://www.serverless.com/plugins/serverless-domain-manager
+custom:
+  customDomain:
+    domainName: dyce.live
+    stage: ${opt:stage, self:provider.stage}
+    basePath: '' # cahnge Api base path, ex /v1
+    certificateName: dyce.live
+    certificateArn: arn:aws:acm:us-east-1:057172434278:certificate/662d8dd1-d4e9-45e1-8ced-764fd4464e7a
+    createRoute53Record: false
+    createRoute53IPv6Record: false
+    endpointType: REGIONAL
+    securityPolicy: tls_1_2
+    apiType: rest
+    autoDomain: true
 
 functions:
   app:

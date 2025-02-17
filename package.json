@@ -27,6 +27,7 @@
     "globals": "^15.14.0",
     "jest": "^29.7.0",
     "serverless": "^4.6.1",
+    "serverless-domain-manager": "^8.0.0",
     "supertest": "^7.0.0"
   }
 }

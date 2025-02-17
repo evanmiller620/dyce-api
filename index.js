@@ -26,11 +26,12 @@ app.get("/", (req, res) => {
 });
 
 let server;
+let handler;
 
 if (process.env.AWS_EXECUTION_ENV) {
   // Running in AWS Lambda
   const server = awsServerlessExpress.createServer(app);
-  exports.handler = (event, context) => {
+  handler = (event, context) => {
     awsServerlessExpress.proxy(server, event, context);
   };
 } else {
@@ -40,4 +41,7 @@ if (process.env.AWS_EXECUTION_ENV) {
   });
 }
 
-export {app, server};
+// AWS Lambda handler
+export { handler };
+// Local server
+export default {app, server};
