@@ -1,6 +1,6 @@
-import User from "../schemas/userSchema.js";
 import express from "express";
-import mongoose from "mongoose";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { DynamoDBDocumentClient, GetCommand, PutCommand, ScanCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import bcrypt from "bcryptjs";
 import nodemailer from "nodemailer";
 import crypto from "crypto";
@@ -10,10 +10,11 @@ dotenv.config();
 
 const router = express.Router();
 
-// Connect to MongoDB
-mongoose.connect(process.env.DB_STRING)
-.then(() => console.log("Connected to MongoDB"))
-.catch((err) => console.error("MongoDB connection error:", err));
+// Connect to dynamo
+const client = new DynamoDBClient({ region: process.env.AWS_REGION });
+const dynamo = DynamoDBDocumentClient.from(client);
+
+const USERS_TABLE = "DyceTable";
 
 // Define sign up fields
 const signUpSchema = z.object({
@@ -26,53 +27,65 @@ const signUpSchema = z.object({
         .regex(/[0-9]/, 'Password must contain at least one number')
 });
 
+// Helper function to get a user by email
+const getUserByEmail = async (email) => {
+    const command = new ScanCommand({
+        TableName: USERS_TABLE,
+        FilterExpression: "email = :email",
+        ExpressionAttributeValues: { ":email": email },
+    });
+
+    const { Items } = await dynamo.send(command);
+    return Items.length ? Items[0] : null;
+};
+
 // Login route
 router.post("/login", async (req, res) => {
     console.log("Received login request");
 
-    const user = await User.findOne({ email: req.body.email });
-
-    if (user && user.verified && await bcrypt.compare(req.body.password, user.password)) {
+    const user = await getUserByEmail(req.body.email);
+    if (user && user.verified && (await bcrypt.compare(req.body.password, user.password))) {
         req.session.user = user.email;
         return res.json({ user: req.session.user });
     }
-    
+
     res.status(401).json({ message: "Wrong email or password" });
 });
 
-// Register route
 router.post("/register", async (req, res) => {
     console.log("Received register request");
 
     const result = signUpSchema.safeParse(req.body);
-
-    if (!result.success)
-        return res.status(401).json({
-            message: result.error.errors[0].message
-        });
+    if (!result.success) {
+        return res.status(401).json({ message: result.error.errors[0].message });
+    }
 
     const { email, password } = result.data;
 
-    const existingUser = await User.findOne({ email: email });
-    if (existingUser)
+    const existingUser = await getUserByEmail(email);
+    if (existingUser) {
         return res.status(401).json({ message: "Email already in use!" });
+    }
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const verificationToken = crypto.randomBytes(20).toString("hex");
-    const newUser = new User({
-        email: email,
-        password: hashedPassword,
-        verified: false,
-        verificationToken: verificationToken
-    });
-    await newUser.save();
 
+    const command = new PutCommand({
+        TableName: USERS_TABLE,
+        Item: {
+            email,
+            password: hashedPassword,
+            verified: false,
+            verificationToken,
+        },
+    });
+
+    await dynamo.send(command);
+
+    // Send verification email
     const transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-            user: process.env.EMAIL,
-            pass: process.env.EMAIL_PASSWORD
-        }
+        service: "gmail",
+        auth: { user: process.env.EMAIL, pass: process.env.EMAIL_PASSWORD },
     });
 
     const verificationLink = `http://localhost:5173/verify?token=${verificationToken}`;
@@ -80,8 +93,8 @@ router.post("/register", async (req, res) => {
         from: process.env.EMAIL,
         to: email,
         subject: "Email Verification",
-        text: `Please verify your email address by clicking the link below:\n\n${verificationLink}`
-    }
+        text: `Please verify your email address by clicking the link below:\n\n${verificationLink}`,
+    };
 
     try {
         await transporter.sendMail(mailOptions);
@@ -97,13 +110,21 @@ router.get("/verify-email", async (req, res) => {
     console.log("Received verify email request");
 
     const { token } = req.query;
-    const user = await User.findOne({ verificationToken: token });
+    const user = await getUserByEmail(token);
 
     if (!user) return res.status(400).json({ message: "Invalid verification link" });
 
-    user.verified = true;
-    user.verificationToken = undefined;
-    await user.save();
+    const command = new UpdateCommand({
+        TableName: USERS_TABLE,
+        Key: { email: user.email },
+        UpdateExpression: "SET verified = :verified, verificationToken = :null",
+        ExpressionAttributeValues: {
+            ":verified": true,
+            ":null": null,
+        },
+    });
+
+    await dynamo.send(command);
 
     req.session.user = user.email;
     res.json({ user: req.session.user });
@@ -115,7 +136,7 @@ router.post("/logout", (req, res) => {
 
     req.session.destroy(() => {
         res.clearCookie("connect.sid");
-        res.json({ message: 'Logout successful' });
+        res.json({ message: "Logout successful" });
     });
 });
 
@@ -123,10 +144,11 @@ router.post("/logout", (req, res) => {
 router.get("/auth-check", (req, res) => {
     console.log("Received authorization check request");
 
-    if (req.session.user)
+    if (req.session.user) {
         res.json({ authenticated: true, user: req.session.user });
-    else
+    } else {
         res.json({ authenticated: false });
+    }
 });
 
 export default router;

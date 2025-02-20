@@ -1,6 +1,8 @@
 import express from "express";
 import session from "express-session";
-import MongoStore from "connect-mongo";
+// import MongoStore from "connect-mongo";
+import DynamoDBStore from "dynamodb-store";
+import AWS from "aws-sdk";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -19,15 +21,32 @@ if (!process.env.AWS_EXECUTION_ENV)
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// DATABASE
+AWS.config.update({
+  region: process.env.AWS_REGION,
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+});
+
+const dynamoStore = new DynamoDBStore({
+  table: "DyceTable",
+  AWSConfigJSON: {
+    region: process.env.AWS_REGION,
+  },
+});
+
 app.use(
   session({
     secret: process.env.SECRET,
     resave: false,
     saveUninitialized: false,
-    store: MongoStore.create({ mongoUrl: process.env.DB_STRING }),
+    store: dynamoStore,
   })
 );
 
+
+// ROUTES
 const routesPath = path.join(__dirname, "src/routes");
 fs.readdirSync(routesPath).forEach((file) => {
   import(`./src/routes/${file}`).then((route) => {
@@ -59,4 +78,4 @@ if (process.env.AWS_EXECUTION_ENV) {
 // AWS Lambda handler
 export { handler };
 // Local server
-export default {app, server};
+export {app, server};
