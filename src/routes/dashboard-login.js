@@ -1,10 +1,10 @@
 import express from "express";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, GetCommand, PutCommand, ScanCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, GetCommand, PutCommand, QueryCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import bcrypt from "bcryptjs";
 import nodemailer from "nodemailer";
-import crypto from "crypto";
 import z from "zod";
+import { v4 as uuidv4 } from 'uuid';
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -29,9 +29,10 @@ const signUpSchema = z.object({
 
 // Helper function to get a user by email
 const getUserByEmail = async (email) => {
-    const command = new ScanCommand({
+    const command = new QueryCommand({
         TableName: USERS_TABLE,
-        FilterExpression: "email = :email",
+        IndexName: "email-index",
+        KeyConditionExpression: "email = :email",
         ExpressionAttributeValues: { ":email": email },
     });
 
@@ -39,14 +40,25 @@ const getUserByEmail = async (email) => {
     return Items.length ? Items[0] : null;
 };
 
+// Helper function to get a user by id
+const getUserById = async (id) => {
+    const getUserCommand = new GetCommand({
+        TableName: USERS_TABLE,
+        Key: { id: id },
+    });
+
+    const { Item } = await dynamo.send(getUserCommand);
+    return Item;
+}
+
 // Login route
 router.post("/login", async (req, res) => {
     console.log("Received login request");
 
     const user = await getUserByEmail(req.body.email);
     if (user && user.verified && (await bcrypt.compare(req.body.password, user.password))) {
-        req.session.user = user.email;
-        return res.json({ user: req.session.user });
+        req.session.userId = user.id;
+        return res.json({ userId: req.session.userId });
     }
 
     res.status(401).json({ message: "Wrong email or password" });
@@ -68,15 +80,17 @@ router.post("/register", async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const verificationToken = crypto.randomBytes(20).toString("hex");
+    const userId = uuidv4()
 
     const command = new PutCommand({
         TableName: USERS_TABLE,
         Item: {
-            email,
+            id: userId,
+            email: email,
             password: hashedPassword,
             verified: false,
-            verificationToken,
+            apiKeys: [],
+            wallets: [],
         },
     });
 
@@ -88,7 +102,7 @@ router.post("/register", async (req, res) => {
         auth: { user: process.env.EMAIL, pass: process.env.EMAIL_PASSWORD },
     });
 
-    const verificationLink = `http://localhost:5173/verify?token=${verificationToken}`;
+    const verificationLink = `http://localhost:5173/verify?token=${userId}`;
     const mailOptions = {
         from: process.env.EMAIL,
         to: email,
@@ -110,24 +124,24 @@ router.get("/verify-email", async (req, res) => {
     console.log("Received verify email request");
 
     const { token } = req.query;
-    const user = await getUserByEmail(token);
+    if (!token)
+        return res.status(400).json({ message: "Invalid verification link" });
 
-    if (!user) return res.status(400).json({ message: "Invalid verification link" });
+    const user = await getUserById(token);
+    if (!user)
+        return res.status(400).json({ message: "Invalid verification link" });
 
     const command = new UpdateCommand({
         TableName: USERS_TABLE,
-        Key: { email: user.email },
-        UpdateExpression: "SET verified = :verified, verificationToken = :null",
-        ExpressionAttributeValues: {
-            ":verified": true,
-            ":null": null,
-        },
+        Key: { id: token },
+        UpdateExpression: "SET verified = :verified",
+        ExpressionAttributeValues: { ":verified": true },
     });
 
     await dynamo.send(command);
 
-    req.session.user = user.email;
-    res.json({ user: req.session.user });
+    req.session.userId = token;
+    res.json({ user: req.session.userId });
 });
 
 // Logout route
@@ -144,8 +158,8 @@ router.post("/logout", (req, res) => {
 router.get("/auth-check", (req, res) => {
     console.log("Received authorization check request");
 
-    if (req.session.user) {
-        res.json({ authenticated: true, user: req.session.user });
+    if (req.session.userId) {
+        res.json({ authenticated: true, user: req.session.userId });
     } else {
         res.json({ authenticated: false });
     }
