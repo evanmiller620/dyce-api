@@ -1,6 +1,6 @@
 import express from "express";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, GetCommand, UpdateCommand, ScanCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, GetCommand, QueryCommand, UpdateCommand, ScanCommand } from "@aws-sdk/lib-dynamodb";
 import crypto from "crypto";
 import dotenv from "dotenv";
 dotenv.config();
@@ -12,17 +12,35 @@ const client = new DynamoDBClient({ region: process.env.AWS_REGION });
 const dynamo = DynamoDBDocumentClient.from(client);
 const USERS_TABLE = "DyceTable"; // Change this to your actual DynamoDB table name
 
+// Helper function to get a user by email
 const getUserByEmail = async (email) => {
-    const command = new GetCommand({ TableName: USERS_TABLE, Key: { email } });
-    const { Item } = await dynamo.send(command);
-    return Item;
+    const command = new QueryCommand({
+        TableName: USERS_TABLE,
+        IndexName: "email-index",
+        KeyConditionExpression: "email = :email",
+        ExpressionAttributeValues: { ":email": email },
+    });
+
+    const { Items } = await dynamo.send(command);
+    return Items.length ? Items[0] : null;
 };
+
+// Helper function to get a user by id
+const getUserById = async (id) => {
+    const getUserCommand = new GetCommand({
+        TableName: USERS_TABLE,
+        Key: { id: id },
+    });
+
+    const { Item } = await dynamo.send(getUserCommand);
+    return Item;
+}
 
 // Middleware requiring authentication
 const requireAuth = async (req, res, next) => {
-    if (!req.session.user)
+    if (!req.session.userId)
         return res.status(401).json({ message: "You must be logged in to access this route" });
-    const user = await getUserByEmail(req.session.user);
+    const user = await getUserById(req.session.userId);
     if (!user)
         return res.status(404).json({ message: "User not found" });
     req.user = user;
@@ -41,13 +59,12 @@ router.post("/generate-api-key", requireAuth, async (req, res) => {
         return res.status(400).json({ message: "Key name already in use" });
         
     const newKey = { name, key: crypto.randomBytes(32).toString("hex"), useCount: 0 };
-    const updatedApiKeys = req.user.apiKeys ? [...req.user.apiKeys, newKey] : [newKey];
 
     const command = new UpdateCommand({
         TableName: USERS_TABLE,
-        Key: { email: req.user.email },
-        UpdateExpression: "SET apiKeys = :apiKeys",
-        ExpressionAttributeValues: { ":apiKeys": updatedApiKeys }
+        Key: { id: req.user.id },
+        UpdateExpression: "SET apiKeys = list_append(apiKeys, :newKey)",
+        ExpressionAttributeValues: { ":newKey": [newKey] }
     });
     await dynamo.send(command);
     
@@ -77,7 +94,7 @@ router.post("/delete-api-key", requireAuth, async (req, res) => {
     
     const command = new UpdateCommand({
         TableName: USERS_TABLE,
-        Key: { email: req.user.email },
+        Key: { id: req.user.id },
         UpdateExpression: "SET apiKeys = :apiKeys",
         ExpressionAttributeValues: { ":apiKeys": updatedApiKeys }
     });
