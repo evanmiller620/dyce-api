@@ -41,10 +41,10 @@ resources:
       Properties:
         TableName: DyceTable
         AttributeDefinitions:
-          - AttributeName: id
+          - AttributeName: email
             AttributeType: S
         KeySchema:
-          - AttributeName: id
+          - AttributeName: email
             KeyType: HASH
         BillingMode: PAY_PER_REQUEST
         TimeToLiveSpecification:
