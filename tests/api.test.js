@@ -4,7 +4,6 @@ import {app,server} from "../index.js"; // Assuming the app is exported from ind
 describe("Root endpoint", () => {
   it("should return 200 for GET /", async () => {
     const res = await request(app).get("/");
-    console.log(res);
     expect(res.status).toBe(200);
   });
 });
@@ -12,7 +11,6 @@ describe("Root endpoint", () => {
 describe("User endpoint", () => {
   it("should return 200 for GET /user", async () => {
     const res = await request(app).get("/user");
-    console.log(res);
     expect(res.status).toBe(200);
   });
 });

@@ -27,15 +27,12 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1  # Change to your AWS region
-  
-      - name: Debug AWS Credentials
-        run: env | grep AWS_
 
       - name: Install Dependencies
         run: npm install
-
-      - name: Run Tests
-        run: npm test
-
+      
       - name: Run ESLint
         run: npm run lint
+        
+      - name: Run Tests
+        run: npm test

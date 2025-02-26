@@ -1,7 +1,7 @@
-import express from 'express';
-const router = express.Router();
+// import express from 'express';
+// const router = express.Router();
 
-const business = async (event, context) => {
+const business = async () => { //event, context
     return {
         statusCode: 200,
         body: JSON.stringify({ message: "Get all posts" }),

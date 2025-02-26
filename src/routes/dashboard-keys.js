@@ -1,6 +1,6 @@
 import express from "express";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, GetCommand, QueryCommand, UpdateCommand, ScanCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, GetCommand, UpdateCommand, ScanCommand } from "@aws-sdk/lib-dynamodb";
 import crypto from "crypto";
 import dotenv from "dotenv";
 dotenv.config();
@@ -13,17 +13,17 @@ const dynamo = DynamoDBDocumentClient.from(client);
 const USERS_TABLE = "DyceTable"; // Change this to your actual DynamoDB table name
 
 // Helper function to get a user by email
-const getUserByEmail = async (email) => {
-    const command = new QueryCommand({
-        TableName: USERS_TABLE,
-        IndexName: "email-index",
-        KeyConditionExpression: "email = :email",
-        ExpressionAttributeValues: { ":email": email },
-    });
+// const getUserByEmail = async (email) => {
+//     const command = new QueryCommand({
+//         TableName: USERS_TABLE,
+//         IndexName: "email-index",
+//         KeyConditionExpression: "email = :email",
+//         ExpressionAttributeValues: { ":email": email },
+//     });
 
-    const { Items } = await dynamo.send(command);
-    return Items.length ? Items[0] : null;
-};
+//     const { Items } = await dynamo.send(command);
+//     return Items.length ? Items[0] : null;
+// };
 
 // Helper function to get a user by id
 const getUserById = async (id) => {

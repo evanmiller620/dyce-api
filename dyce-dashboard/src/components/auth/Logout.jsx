@@ -1,4 +1,5 @@
 import React from 'react'
+import '@/assets/styles/Logout.css'
 import { useAuth } from './AuthContext';
 
 export const Logout = () => {

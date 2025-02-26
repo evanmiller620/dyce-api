@@ -10,7 +10,7 @@ export const Dashboard = () => {
       <h1>Dyce API Dashboard</h1>
       <KeyManager />
       {/* <KeyTester /> */}
-      {/* <Logout /> */}
+      <Logout />
     </div>
   )
 }

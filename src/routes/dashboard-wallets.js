@@ -65,6 +65,7 @@ router.get("/get-wallets", requireAuth, async (req, res) => {
     const formattedWallets = req.user.wallets?.map(({ name, address, key }) => ({
         name,
         address,
+        key
     })) || [];
     res.json({ wallets: formattedWallets });
 });

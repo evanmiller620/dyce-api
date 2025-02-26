@@ -1,4 +1,4 @@
-import React, { createContext, useState } from 'react';
+import React, { createContext, useState, useEffect } from 'react';
 
 const AuthContext = createContext();
 
@@ -18,6 +18,10 @@ export const AuthProvider = ({ children }) => {
       setUser(null);
     });
   };
+
+  useEffect(() => { // trigger on page open
+    getUser();
+  }, []);
 
   return (
     <AuthContext.Provider value={{ user, setUser, getUser }}>

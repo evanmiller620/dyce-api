@@ -33,6 +33,7 @@ export const Login = () => {
         password: password
       });
       setUser(data.user);
+      window.location.reload();
     } catch (e) {
       setError(e.message);
     } finally {
