@@ -9,11 +9,13 @@ provider:
   region: us-east-1
   stage: main
   stackName: dyce-api-main
+  logs:
+    frameworkLambda: false
   iamRoleStatements:
     - Effect: Allow
       Action:
         - dynamodb:*
-      Resource: "arn:aws:dynamodb:us-east-1:*:table/SessionTable"
+      Resource: "arn:aws:dynamodb:us-east-1:*:table/DyceTable"
 
 
 plugins:
@@ -33,23 +35,6 @@ custom:
     securityPolicy: tls_1_2
     apiType: rest
     autoDomain: true
-
-resources:
-  Resources:
-    SessionTable:
-      Type: AWS::DynamoDB::Table
-      Properties:
-        TableName: DyceTable
-        AttributeDefinitions:
-          - AttributeName: email
-            AttributeType: S
-        KeySchema:
-          - AttributeName: email
-            KeyType: HASH
-        BillingMode: PAY_PER_REQUEST
-        TimeToLiveSpecification:
-          AttributeName: expiresAt
-          Enabled: true
 
 functions:
   app:

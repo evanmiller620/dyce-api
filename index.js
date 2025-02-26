@@ -45,7 +45,6 @@ app.use(
   })
 );
 
-
 // ROUTES
 const routesPath = path.join(__dirname, "src/routes");
 fs.readdirSync(routesPath).forEach((file) => {
