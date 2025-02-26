@@ -1,6 +1,6 @@
 import express from "express";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, GetCommand, QueryCommand, UpdateCommand, ScanCommand, DeleteCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, GetCommand, QueryCommand, UpdateCommand, DeleteCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
 import crypto from "crypto";
 import dotenv from "dotenv";
 dotenv.config();
@@ -103,7 +103,7 @@ router.get("/get-api-keys", requireAuth, async (req, res) => {
     console.log("Received get keys request");
 
     const apiKeys = await getKeysByUser(req.user.id);
-    const formattedKeys = apiKeys?.map(({ key, userId, name, wallet, useCount }) => ({
+    const formattedKeys = apiKeys?.map(({ key, name, wallet, useCount }) => ({ //userId,
         name,
         key: `${key.slice(0, 4)}...${key.slice(-4)}`,
         wallet: wallet,

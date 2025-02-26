@@ -127,8 +127,8 @@ router.post("/get-wallet-balance", requireAuth, async (req, res) => {
     const { name } = req.body;
     if (!name) return res.status(400).json({ message: "Wallet name required" });
 
-    const wallet = req.user.wallets.find(wallet => wallet.name === name);
-    const private_key = wallet.key;
+    // const wallet = req.user.wallets.find(wallet => wallet.name === name);
+    // const private_key = wallet.key;
     // Will need to user ethers.js here
 });
 
