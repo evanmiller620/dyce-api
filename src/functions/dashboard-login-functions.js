@@ -6,7 +6,7 @@ import {
     SignUpCommand,
     ConfirmSignUpCommand,
     GetUserCommand,
-    GlobalSignOutCommand,
+    // GlobalSignOutCommand,
     AdminGetUserCommand,
     ResendConfirmationCodeCommand
 } from "@aws-sdk/client-cognito-identity-provider";
