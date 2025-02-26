@@ -1,6 +1,5 @@
 import express from "express";
 import session from "express-session";
-// import MongoStore from "connect-mongo";
 import DynamoDBStore from "dynamodb-store";
 import AWS from "aws-sdk";
 import fs from "fs";
@@ -10,7 +9,7 @@ import awsServerlessExpress from "aws-serverless-express";
 import dotenv from "dotenv";
 dotenv.config();
 
-import {business_handler_local} from "./src/middlewear/business.js";
+import {business_handler_local} from "./src/functions/business.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

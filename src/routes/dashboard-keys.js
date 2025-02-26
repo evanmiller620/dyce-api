@@ -94,7 +94,7 @@ router.post("/generate-api-key", requireAuth, async (req, res) => {
         },
     });
     await dynamo.send(command);
-    
+    console.log(newKey);
     res.json({ apiKey: newKey });
 });
 

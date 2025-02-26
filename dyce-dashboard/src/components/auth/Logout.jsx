@@ -4,13 +4,26 @@ import { useAuth } from './AuthContext';
 
 export const Logout = () => {
   const { setUser } = useAuth();
-
   const handleLogout = async () => {
-    await fetch("http://localhost:8080/logout", {
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      setUser(null);
+      return;
+    }
+    
+    fetch("http://localhost:8080/logout", {
       method: "POST",
-      credentials: "include"
-    });
-    setUser(null);
+      headers: { Authorization: `${token}` }
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          localStorage.removeItem("accessToken");
+          setUser(null);
+        }
+      });
+      localStorage.removeItem("accessToken");
+      setUser(null);
   }
 
   return <button onClick={handleLogout}>Logout</button>;

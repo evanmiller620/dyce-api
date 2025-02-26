@@ -21,7 +21,7 @@ function Popup({ onClose }) {
       if (!response.ok)
         throw new Error(data.message || "Failed to create API key");
       setKeyReady(true);
-      setApiKey(data.apiKey.key);
+      setApiKey(data.apiKey); // changed from data.apiKey.key
       setError(null);
     } catch (e) {
       setError(e.message);

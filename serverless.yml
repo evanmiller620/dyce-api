@@ -19,6 +19,7 @@ provider:
         - dynamodb:*
       Resource: "arn:aws:dynamodb:us-east-1:*:table/DyceTable"
 
+# include/exclude rules for lambda function
 package:
   patterns:
     - 'src/**'
@@ -29,6 +30,9 @@ package:
     - '!test-*/**'
     - '!dyce-dashboard/**'
     - '!scripts/**'
+    - '!.github/**'
+    - '!serverless-output/**'
+    - '!README.md'
 
 plugins:
   - serverless-domain-manager
@@ -48,6 +52,7 @@ custom:
     apiType: rest
     autoDomain: true
 
+# schema that describes what events go to what functions
 functions:
   app:
     handler: index.handler
@@ -57,14 +62,14 @@ functions:
           method: GET
 
   authCheck:
-    handler: index.handler
+    handler: src/functions/dashboard-login-functions.authCheck
     events:
       - http:
           path: /auth-check
           method: GET
 
   login:
-    handler: index.handler
+    handler: src/functions/dashboard-login-functions.login
     events:
       - http:
           path: /login
@@ -72,35 +77,35 @@ functions:
           cors: true
 
   register:
-    handler: index.handler
+    handler: src/functions/dashboard-login-functions.register
     events:
       - http:
           path: /register
           method: POST
 
   verifyEmail:
-    handler: index.handler
+    handler: src/functions/dashboard-login-functions.verifyEmail
     events:
       - http:
           path: /verify-email
           method: POST
 
   resendVerification:
-    handler: index.handler
+    handler: src/functions/dashboard-login-functions.resendVerification
     events:
       - http:
           path: /resend-verification
           method: POST
 
   logout:
-    handler: index.handler
+    handler: src/functions/dashboard-login-functions.logout
     events:
       - http:
           path: /logout
           method: POST
 
   business:
-    handler: src/routes/business.handler
+    handler: src/middlewear/business.handler
     events:
       - http:
           path: /business
@@ -108,12 +113,3 @@ functions:
       - http:
           path: /business
           method: GET
-
-  register2:
-    handler: handler.reg_handler
-    environment:
-      COGNITO_CLIENT_ID: ${env:COGNITO_CLIENT_ID}
-    events:
-      - http:
-          path: /register2
-          method: POST
