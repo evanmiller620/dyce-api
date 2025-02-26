@@ -40,7 +40,7 @@ const dynamoStore = new DynamoDBStore({
 
 app.use(
   session({
-    secret: process.env.SECRET,
+    secret: process.env.SECRET  || "default-secret", // needs a default for actions
     resave: false,
     saveUninitialized: false,
     store: dynamoStore,
