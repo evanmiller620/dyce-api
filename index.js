@@ -10,6 +10,8 @@ import awsServerlessExpress from "aws-serverless-express";
 import dotenv from "dotenv";
 dotenv.config();
 
+import {business_handler_local} from "./src/middlewear/business.js";
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -50,13 +52,17 @@ const routesPath = path.join(__dirname, "src/routes");
 fs.readdirSync(routesPath).forEach((file) => {
   import(`./src/routes/${file}`).then((route) => {
     app.use("/", route.default);
-  });
+  }).catch((err) => {
+    console.error(`Failed to load route: ${file}`, err);
+  });;
 });
 
 app.get("/", (req, res) => {
   console.log("Connection established to root");
   res.json({ message: "API root connection" });
 });
+
+app.get("/business", business_handler_local);
 
 let server;
 let handler;
