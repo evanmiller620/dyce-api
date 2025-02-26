@@ -1,6 +1,6 @@
 import express from "express";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, GetCommand, UpdateCommand, ScanCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, GetCommand, QueryCommand, UpdateCommand, ScanCommand, DeleteCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
 import crypto from "crypto";
 import dotenv from "dotenv";
 dotenv.config();
@@ -10,7 +10,8 @@ const router = express.Router();
 // Connect to DYNAMO
 const client = new DynamoDBClient({ region: process.env.AWS_REGION });
 const dynamo = DynamoDBDocumentClient.from(client);
-const USERS_TABLE = "DyceTable"; // Change this to your actual DynamoDB table name
+const USERS_TABLE = "DyceTable";
+const KEYS_TABLE = "KeyTable";
 
 // Helper function to get a user by email
 // const getUserByEmail = async (email) => {
@@ -31,9 +32,31 @@ const getUserById = async (id) => {
         TableName: USERS_TABLE,
         Key: { id: id },
     });
-
     const { Item } = await dynamo.send(getUserCommand);
     return Item;
+}
+
+// Helper function to get an API key data
+const getKey = async (key) => {
+    const getKeyCommand = new GetCommand({
+        TableName: KEYS_TABLE,
+        Key: { key: key },
+    });
+    const { Item } = await dynamo.send(getKeyCommand);
+    return Item;
+}
+
+// Helper function to get list of a user's API keys
+const getKeysByUser = async (id) => {
+    const command = new QueryCommand({
+        TableName: KEYS_TABLE,
+        IndexName: "userId-index",
+        KeyConditionExpression: "userId = :userId",
+        ExpressionAttributeValues: { ":userId": id },
+    });
+
+    const { Items } = await dynamo.send(command);
+    return Items.length ? Items : null;
 }
 
 // Middleware requiring authentication
@@ -47,24 +70,28 @@ const requireAuth = async (req, res, next) => {
     next();
 };
 
-
 // Generate API key route
 router.post("/generate-api-key", requireAuth, async (req, res) => {
     console.log("Received generate key request");
 
     const { name } = req.body;
     if (!name) return res.status(400).json({ message: "Key name required" });
-    
-    if (req.user.apiKeys && req.user.apiKeys.some((key) => key.name === name))
-        return res.status(400).json({ message: "Key name already in use" });
-        
-    const newKey = { name, key: crypto.randomBytes(32).toString("hex"), useCount: 0 };
 
-    const command = new UpdateCommand({
-        TableName: USERS_TABLE,
-        Key: { id: req.user.id },
-        UpdateExpression: "SET apiKeys = list_append(apiKeys, :newKey)",
-        ExpressionAttributeValues: { ":newKey": [newKey] }
+    const userKeys = await getKeysByUser(req.user.id);
+    if (userKeys?.some(apiKey => apiKey.name === name))
+        return res.status(400).json({ message: "Key name already in use!" });
+
+    const newKey = crypto.randomBytes(32).toString("hex")
+
+    const command = new PutCommand({
+        TableName: KEYS_TABLE,
+        Item: {
+            key: newKey,
+            userId: req.user.id,
+            name: name,
+            wallet: req.user.wallets.length ? req.user.wallets[0].name : null,
+            useCount: 0,
+        },
     });
     await dynamo.send(command);
     
@@ -75,10 +102,12 @@ router.post("/generate-api-key", requireAuth, async (req, res) => {
 router.get("/get-api-keys", requireAuth, async (req, res) => {
     console.log("Received get keys request");
 
-    const formattedKeys = req.user.apiKeys?.map(({ name, key, useCount }) => ({
+    const apiKeys = await getKeysByUser(req.user.id);
+    const formattedKeys = apiKeys?.map(({ key, userId, name, wallet, useCount }) => ({
         name,
         key: `${key.slice(0, 4)}...${key.slice(-4)}`,
-        useCount
+        wallet: wallet,
+        useCount,
     })) || [];
     res.json({ apiKeys: formattedKeys });
 });
@@ -88,15 +117,15 @@ router.post("/delete-api-key", requireAuth, async (req, res) => {
     console.log("Received delete key request");
 
     const { name } = req.body;
-    if (!name) return res.status(400).json({ message: "API key name required" });
+    if (!name)
+        return res.status(400).json({ message: "API key name required" });
 
-    const updatedApiKeys = req.user.apiKeys?.filter(apiKey => apiKey.name !== name) || [];
+    const userKeys = await getKeysByUser(req.user.id);
+    const apiKey = userKeys.find(apiKey => apiKey.name === name);
     
-    const command = new UpdateCommand({
-        TableName: USERS_TABLE,
-        Key: { id: req.user.id },
-        UpdateExpression: "SET apiKeys = :apiKeys",
-        ExpressionAttributeValues: { ":apiKeys": updatedApiKeys }
+    const command = new DeleteCommand({
+        TableName: KEYS_TABLE,
+        Key: { key: apiKey.key },
     });
     await dynamo.send(command);
 
@@ -105,34 +134,26 @@ router.post("/delete-api-key", requireAuth, async (req, res) => {
 
 // Middleware requiring API key
 const requireKey = async (req, res, next) => {
-    const apiKey = req.headers['apikey'];
-    if (!apiKey)
+    const key = req.headers['apikey'];
+
+    if (!key)
         return res.status(401).json({ message: "API key required" });
     
-    const command = new ScanCommand({
-        TableName: USERS_TABLE,
-        FilterExpression: "contains(apiKeys, :apiKey)",
-        ExpressionAttributeValues: { ":apiKey": apiKey },
-    });
-    const { Items } = await dynamo.send(command);
-    const user = Items?.[0];
-
-    if (!user)
+    const apiKey = await getKey(key);
+    if (!apiKey)
         return res.status(401).json({ message: "Invalid API key" });
-    
-    const apiKeyEntry = user.apiKeys.find(entry => entry.key === apiKey);
-    apiKeyEntry.useCount += 1;
 
-    const updateCommand = new UpdateCommand({
-        TableName: USERS_TABLE,
-        Key: { email: user.email },
-        UpdateExpression: "SET apiKeys = :apiKeys",
-        ExpressionAttributeValues: { ":apiKeys": user.apiKeys }
-    });
-    await dynamo.send(updateCommand);
+    const command = new UpdateCommand({
+        TableName: KEYS_TABLE,
+        Key: { key: apiKey.key },
+        UpdateExpression: "SET useCount = :useCount",
+        ExpressionAttributeValues: {
+            ":useCount": apiKey.useCount + 1
+        }
+    })
+    await dynamo.send(command);
 
-    req.user = user;
-    req.apiKeyEntry = apiKeyEntry;
+    req.apiKey = apiKey;
     next();
 };
 
@@ -140,7 +161,37 @@ const requireKey = async (req, res, next) => {
 router.post("/use-api-key", requireKey, async (req, res) => {
     console.log("Received use key request");
 
-    res.json({ message: "API Key used successfully", useCount: req.apiKeyEntry.useCount });
+    res.json({ message: "API Key used successfully", useCount: req.apiKey.useCount });
+});
+
+// Set API key wallet route
+router.post("/set-wallet", requireAuth, async (req, res) => {
+    console.log("Received set wallet request");
+
+    const { keyName, walletName } = req.body;
+
+    const wallet = req.user.wallets.find(wallet => wallet.name === walletName);
+    const userKeys = await getKeysByUser(req.user.id);
+    const key = userKeys.find(apiKey => apiKey.name === keyName).key;
+
+    const command = new UpdateCommand({
+        TableName: KEYS_TABLE,
+        Key: { key: key },
+        UpdateExpression: "SET wallet = :wallet",
+        ExpressionAttributeValues: {
+            ":wallet": wallet.name
+        }
+    })
+    await dynamo.send(command);
+
+    res.json({ message: "Set wallet successfully" });
+});
+
+// Get API key wallet address route
+router.post("/get-wallet", requireKey, async (req, res) => {
+    console.log("Received get wallet address request");
+
+    res.json({ address: req.apiKey.wallet });
 });
 
 export default router;
