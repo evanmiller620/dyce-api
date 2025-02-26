@@ -9,14 +9,26 @@ provider:
   region: us-east-1
   stage: main
   stackName: dyce-api-main
-  logs:
-    frameworkLambda: false
   iamRoleStatements:
+    - Effect: Allow
+      Action:
+      - cognito-idp:*
+      Resource: "*"
     - Effect: Allow
       Action:
         - dynamodb:*
       Resource: "arn:aws:dynamodb:us-east-1:*:table/DyceTable"
 
+package:
+  patterns:
+    - 'src/**'
+    - 'index.js'
+    - 'package.json'
+    # - '!node_modules/**'
+    - '!tests/**'
+    - '!test-*/**'
+    - '!dyce-dashboard/**'
+    - '!scripts/**'
 
 plugins:
   - serverless-domain-manager
@@ -43,6 +55,65 @@ functions:
       - http:
           path: /
           method: GET
+
+  authCheck:
+    handler: index.handler
+    events:
       - http:
-          path: "{proxy+}" # catch-all route
-          method: ANY
+          path: /auth-check
+          method: GET
+
+  login:
+    handler: index.handler
+    events:
+      - http:
+          path: /login
+          method: POST
+          cors: true
+
+  register:
+    handler: index.handler
+    events:
+      - http:
+          path: /register
+          method: POST
+
+  verifyEmail:
+    handler: index.handler
+    events:
+      - http:
+          path: /verify-email
+          method: POST
+
+  resendVerification:
+    handler: index.handler
+    events:
+      - http:
+          path: /resend-verification
+          method: POST
+
+  logout:
+    handler: index.handler
+    events:
+      - http:
+          path: /logout
+          method: POST
+
+  business:
+    handler: src/routes/business.handler
+    events:
+      - http:
+          path: /business
+          method: POST
+      - http:
+          path: /business
+          method: GET
+
+  register2:
+    handler: handler.reg_handler
+    environment:
+      COGNITO_CLIENT_ID: ${env:COGNITO_CLIENT_ID}
+    events:
+      - http:
+          path: /register2
+          method: POST
