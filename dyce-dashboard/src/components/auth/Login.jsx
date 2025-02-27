@@ -8,13 +8,12 @@ async function loginUser(credentials) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(credentials),
+    credentials: 'include',
   });
   
   const data = await response.json();
-  console.log(data);
   if (!response.ok)
     throw new Error(data?.message || `Error: ${response.status}`);
-  localStorage.setItem("accessToken", data.accessToken);
   return data;
 }
 
@@ -28,14 +27,12 @@ export const Login = () => {
   const handleSubmit = async e => {
     e.preventDefault();
     setLoading(true);
-    setError(null);
     try {
       const data = await loginUser({
         email: username,
         password: password
       });
       setUser(data.userId);
-      window.location.reload();
     } catch (e) {
       setError(e.message);
     } finally {

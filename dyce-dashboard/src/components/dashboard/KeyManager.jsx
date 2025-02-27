@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import Trash from "@/assets/icons/trash.svg";
-import Popup from './Popup';
+import { KeyPopup } from './KeyPopup';
 
-export const KeyManager = () => {
+export const KeyManager = ({ wallets }) => {
   const [apiKeys, setApiKeys] = useState([]);
   const [showPopup, setShowPopup] = useState(false);
 
@@ -17,7 +17,7 @@ export const KeyManager = () => {
 
   useEffect(() => {
     getKeys();
-  }, [showPopup]);
+  }, [showPopup, wallets]);
 
   const deleteKey = async (name) => {
     const response = await fetch('http://localhost:8080/delete-api-key', {
@@ -31,28 +31,65 @@ export const KeyManager = () => {
     setApiKeys(apiKeys.filter(key => key.name !== name));
   }
 
+  const updateWallet = async (keyName, walletName) => {
+    const response = await fetch('http://localhost:8080/set-wallet', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ keyName: keyName, walletName: walletName }),
+      credentials: 'include',
+    });
+    if (!response.ok) throw new Error("Failed to set wallet for API key");
+    const data = await response.json();
+    await getKeys();
+  }
+
   return (
-    <div className='key-manager-wrapper'>
+    <div className='manager keys-wrapper'>
       <div className='header-container'>
         <h1>API Keys</h1>
         <button onClick={setShowPopup}>+ Create</button>
-        {showPopup && <Popup onClose={() => setShowPopup(false)} />}
+        {showPopup && <KeyPopup onClose={() => setShowPopup(false)} />}
       </div>
-      <div className='api-key-list'>
-        {apiKeys.length === 0 ? (
-          <p>No API keys created yet.</p>
-        ) : (
-          apiKeys.map(({name, key}) => (
-            <div key={key} className='api-key-entry'>
-              <label id="name">{name}</label>
-              <label id="key">{key}</label>
-              <button id="trash" onClick={() => deleteKey(name)}>
-                <img src={Trash} alt="X" height="24" />
-              </button>
-            </div>
-          ))
-        )}
-      </div>
+      <table>
+        <colgroup>
+          <col style={{ width: "auto" }} />
+          <col style={{ width: "110px" }} />
+          <col style={{ width: "150px" }} />
+          <col style={{ width: "40px" }} />
+        </colgroup>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Address</th>
+            <th>Wallet</th>
+          </tr>
+        </thead>
+        <tbody>
+          {apiKeys.length === 0 ? (
+            <tr><td>No API keys created yet.</td></tr>
+          ) : (
+            apiKeys.map(({name, key, wallet}) => (
+              <tr key={key}>
+                <td>{name}</td>
+                <td>{key}</td>
+                <td>
+                  <select value={wallet || ""} onChange={(e) => updateWallet(name, e.target.value)}>
+                    <option value="" disabled>Select wallet</option>
+                    {wallets.map(({name, address}) => (
+                      <option key={address}>{name}</option>
+                    ))}
+                  </select>
+                </td>
+                <td>
+                  <button id="trash" onClick={() => deleteKey(name)}>
+                    <img src={Trash} alt="X" height="24" />
+                  </button>
+                </td>
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
     </div>
   )
 }

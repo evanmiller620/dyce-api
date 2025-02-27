@@ -1,15 +1,32 @@
-.key-manager-wrapper {
+.managers-wrapper {
+    display: flex;
+}
+
+.manager {
     border-radius: 10px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     background: #ffffff;
     padding: 20px;
-    width: 280px;
-    height: 575px;
     display: flex;
     flex-direction: column;
+    margin: 10px;
 }
 
-.key-manager-wrapper * {
+.keys-wrapper {
+    width: 500px;
+    height: 575px;
+}
+
+.wallets-wrapper {
+    width: 400px;
+    height: 575px;
+}
+
+.keys-wrapper * {
+    margin: 5px;
+}
+
+.wallets-wrapper * {
     margin: 5px;
 }
 
@@ -29,33 +46,44 @@
     align-self: center;
 }
 
-.api-key-list {
+table {
+    background-color: #007bff;
+    padding: 10px;
+    border-radius: 10px;
+    color: white;
+    table-layout: fixed;
+    width: 100%;
+    border-spacing: 0px;
     overflow-y: auto;
 }
 
-.api-key-entry {
-    background-color: #007bff;
-    color: white;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
+td, th {
+    text-align: left;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
     padding: 5px;
 }
 
-.api-key-entry #name {
-    width: 100px;
-    text-overflow: ellipsis;
-    overflow: hidden;
+tbody tr:nth-child(odd) {
+    background-color: #5baaff;
 }
 
-.api-key-entry #key {
-    width:  100px;
+select {
+    border: none;
+    border-radius: 5px;
+    outline: none;
+    padding: 5px;
+    width: 100%;
     text-overflow: ellipsis;
-    overflow: hidden;
 }
 
-.api-key-entry #trash {
-    align-self: flex-end;
+option {
+    background-color: #2e93ff;
+}
+
+#trash {
+    margin-left: auto;
     display: inline-flex;
     width: 30px;
     height: 30px;
@@ -63,7 +91,7 @@
     justify-content: center;
     border-radius: 5px;
     border: none;
-    background-color: #007bff;
+    background-color: transparent;
 }
 
 .popup-container {
@@ -87,11 +115,6 @@
     padding: 10px;
 }
 
-.popup .inputs {
-    display: flex;
-    align-items: center;
-}
-
 .popup input {
     padding: 12px;
     padding-right: 50px;
@@ -107,6 +130,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-grow: 1;
 }
 
 .popup #copy {

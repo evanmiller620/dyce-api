@@ -1,7 +1,7 @@
 import { useState } from "react";
 import Copy from "@/assets/icons/copy.svg";
 
-function Popup({ onClose }) {
+export const KeyPopup = ({ onClose }) => {
   const [keyName, setKeyName] = useState("");
   const [keyReady, setKeyReady] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -21,7 +21,7 @@ function Popup({ onClose }) {
       if (!response.ok)
         throw new Error(data.message || "Failed to create API key");
       setKeyReady(true);
-      setApiKey(data.apiKey); // changed from data.apiKey.key
+      setApiKey(data.apiKey);
       setError(null);
     } catch (e) {
       setError(e.message);
@@ -40,14 +40,14 @@ function Popup({ onClose }) {
     <div className="popup-container">
       <div className="popup">
         {!keyReady ? (
-          <form className="inputs" onSubmit={(e) => { e.preventDefault(); createKey(keyName) }}>
+          <form className="col" onSubmit={(e) => { e.preventDefault(); createKey(keyName) }}>
             <input type="text" onChange={e => setKeyName(e.target.value)} placeholder="Key name" required></input>
             <button type="submit" disabled={loading}>Enter</button>
             <button onClick={onClose}>Cancel</button>
           </form>
         ) : (
           <>
-            <div className="inputs">
+            <div className="col">
               <input type="text" value={apiKey} readOnly />
               <button id="copy" onClick={() => navigator.clipboard.writeText(apiKey)}>
                 <img src={Copy} alt="X" height="24" />
@@ -63,5 +63,3 @@ function Popup({ onClose }) {
     </div>
   );
 }
-
-export default Popup;
