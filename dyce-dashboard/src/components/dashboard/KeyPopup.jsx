@@ -10,11 +10,12 @@ export const KeyPopup = ({ onClose }) => {
 
   const createKey = async (name) => {
     setLoading(true);
+    user = localStorage.getItem("userId");
     try {
       const response = await fetch('http://localhost:8080/generate-api-key', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: name }),
+        body: JSON.stringify({ name: name , user: user }),
         credentials: 'include',
       });
       const data = await response.json();

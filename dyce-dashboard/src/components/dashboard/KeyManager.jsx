@@ -7,8 +7,15 @@ export const KeyManager = ({ wallets }) => {
   const [showPopup, setShowPopup] = useState(false);
 
   async function getKeys() {
+    const user = localStorage.getItem("userId");
+    console.log(user);
     const response = await fetch('http://localhost:8080/get-api-keys', {
+      method: 'POST',
       credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json', // Specify JSON format
+      },
+      body: JSON.stringify({ user: user }),
     });
     if (!response.ok) throw new Error("Failed to fetch API keys");
     const data = await response.json();
@@ -20,10 +27,11 @@ export const KeyManager = ({ wallets }) => {
   }, [showPopup, wallets]);
 
   const deleteKey = async (name) => {
+    const user = localStorage.getItem("userId");
     const response = await fetch('http://localhost:8080/delete-api-key', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: name }),
+      body: JSON.stringify({ name: name , user: user}),
       credentials: 'include',
     });
     if (!response.ok) throw new Error("Failed to delete API key");
@@ -32,10 +40,11 @@ export const KeyManager = ({ wallets }) => {
   }
 
   const updateWallet = async (keyName, walletName) => {
+    const user = localStorage.getItem("userId");
     const response = await fetch('http://localhost:8080/set-wallet', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ keyName: keyName, walletName: walletName }),
+      headers: { 'Content-Type': 'application/json'},
+      body: JSON.stringify({ keyName: keyName, walletName: walletName , user: user }),
       credentials: 'include',
     });
     if (!response.ok) throw new Error("Failed to set wallet for API key");

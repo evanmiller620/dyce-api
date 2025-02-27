@@ -19,10 +19,11 @@ export const WalletManager = ({ wallets, setWallets }) => {
   }, [showPopup]);
 
   const deleteWallet = async (name) => {
+    user = localStorage.getItem("userId");
     const response = await fetch('http://localhost:8080/remove-wallet', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: name }),
+      body: JSON.stringify({ name: name, user: user }),
       credentials: 'include',
     });
     if (!response.ok) throw new Error("Failed to delete wallet");

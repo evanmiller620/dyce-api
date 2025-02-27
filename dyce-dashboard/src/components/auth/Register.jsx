@@ -62,6 +62,7 @@ export const Register = () => {
         <PasswordChecklist password={password} confirmPassword={confirmPassword} onChange={(valid) => setValid(valid)}/>
         {error && <p className="error-message">{error}</p>}
         <button type="submit" disabled={loading}>Submit</button>
+        <p>Have an account?<a href='login'>Sign in</a></p>
       </form>
     </div>
   )

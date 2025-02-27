@@ -14,6 +14,8 @@ async function loginUser(credentials) {
   const data = await response.json();
   if (!response.ok)
     throw new Error(data?.message || `Error: ${response.status}`);
+  localStorage.setItem("accessToken", data.accessToken);
+  localStorage.setItem("userId", data.userId);
   return data;
 }
 
@@ -27,12 +29,14 @@ export const Login = () => {
   const handleSubmit = async e => {
     e.preventDefault();
     setLoading(true);
+    setError(null);
     try {
       const data = await loginUser({
         email: username,
         password: password
       });
       setUser(data.userId);
+      window.location.reload();
     } catch (e) {
       setError(e.message);
     } finally {
