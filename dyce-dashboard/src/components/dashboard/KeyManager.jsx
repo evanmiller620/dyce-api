@@ -50,25 +50,25 @@ export const KeyManager = ({ wallets }) => {
         <button onClick={setShowPopup}>+ Create</button>
         {showPopup && <KeyPopup onClose={() => setShowPopup(false)} />}
       </div>
-      <table>
-        <colgroup>
-          <col style={{ width: "auto" }} />
-          <col style={{ width: "110px" }} />
-          <col style={{ width: "150px" }} />
-          <col style={{ width: "40px" }} />
-        </colgroup>
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Address</th>
-            <th>Wallet</th>
-          </tr>
-        </thead>
-        <tbody>
-          {apiKeys.length === 0 ? (
-            <tr><td>No API keys created yet.</td></tr>
-          ) : (
-            apiKeys.map(({name, key, wallet}) => (
+      {apiKeys.length === 0 ? (
+        <h3>No API keys created yet.</h3>
+      ) : (
+        <table>
+          <colgroup>
+            <col style={{ width: "auto" }} />
+            <col style={{ width: "110px" }} />
+            <col style={{ width: "150px" }} />
+            <col style={{ width: "40px" }} />
+          </colgroup>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Address</th>
+              <th>Wallet</th>
+            </tr>
+          </thead>
+          <tbody>
+            {apiKeys.map(({name, key, wallet}) => (
               <tr key={key}>
                 <td>{name}</td>
                 <td>{key}</td>
@@ -86,10 +86,10 @@ export const KeyManager = ({ wallets }) => {
                   </button>
                 </td>
               </tr>
-            ))
-          )}
-        </tbody>
-      </table>
+            ))}
+          </tbody>
+        </table>
+      )}
     </div>
   )
 }
