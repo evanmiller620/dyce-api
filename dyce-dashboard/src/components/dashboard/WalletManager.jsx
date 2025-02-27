@@ -38,25 +38,25 @@ export const WalletManager = ({ wallets, setWallets }) => {
         <button onClick={setShowPopup}>+ Add</button>
         {showPopup && <WalletPopup onClose={() => setShowPopup(false)} />}
       </div>
-      <table>
-        <colgroup>
-          <col style={{ width: "50%" }} />
-          <col style={{ width: "50%" }} />
-          <col style={{ width: "80px" }} />
-          <col style={{ width: "40px" }} />
-        </colgroup>
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Address</th>
-            <th>Balance</th>
-          </tr>
-        </thead>
-        <tbody>
-          {wallets.length === 0 ? (
-            <tr><td>No wallets added yet.</td></tr>
-          ) : (
-            wallets.map(({name, address}) => (
+      {wallets.length === 0 ? (
+        <h3>No wallets added yet.</h3>
+      ) : (
+        <table>
+          <colgroup>
+            <col style={{ width: "50%" }} />
+            <col style={{ width: "50%" }} />
+            <col style={{ width: "80px" }} />
+            <col style={{ width: "40px" }} />
+          </colgroup>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Address</th>
+              <th>Balance</th>
+            </tr>
+          </thead>
+          <tbody>
+            {wallets.map(({name, address}) => (
               <tr key={address}>
                 <td>{name}</td>
                 <td>{address}</td>
@@ -67,10 +67,10 @@ export const WalletManager = ({ wallets, setWallets }) => {
                   </button>
                 </td>
               </tr>
-            ))
-          )}
-        </tbody>
-      </table>
+            ))}
+          </tbody>
+        </table>
+      )}
     </div>
   )
 }
