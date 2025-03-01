@@ -6,7 +6,13 @@ export const WalletManager = ({ wallets, setWallets }) => {
   const [showPopup, setShowPopup] = useState(false);
 
   async function getWallets() {
+    const token = localStorage.getItem("accessToken");
     const response = await fetch('http://localhost:8080/get-wallets', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        "authorization": `${token}`
+      },
       credentials: 'include',
     });
     if (!response.ok) throw new Error("Failed to fetch wallets");
@@ -19,11 +25,14 @@ export const WalletManager = ({ wallets, setWallets }) => {
   }, [showPopup]);
 
   const deleteWallet = async (name) => {
-    user = localStorage.getItem("userId");
+    const token = localStorage.getItem("accessToken");
     const response = await fetch('http://localhost:8080/remove-wallet', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: name, user: user }),
+      headers: {
+        'Content-Type': 'application/json',
+        "authorization": `${token}`
+      },
+      body: JSON.stringify({ name: name }),
       credentials: 'include',
     });
     if (!response.ok) throw new Error("Failed to delete wallet");
@@ -56,7 +65,7 @@ export const WalletManager = ({ wallets, setWallets }) => {
             </tr>
           </thead>
           <tbody>
-            {wallets.map(({name, address}) => (
+            {wallets.map(({ name, address }) => (
               <tr key={address}>
                 <td>{name}</td>
                 <td>{address}</td>

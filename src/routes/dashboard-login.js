@@ -1,33 +1,31 @@
 import express from "express";
-import dotenv from "dotenv";
 import { login, register, verifyEmail, resendVerification, logout, authCheck } from "../functions/dashboard-login-functions.js";
-dotenv.config();
 
 const router = express.Router();
 
 // Define routes
 router.post("/login", async (req, res) => {
-    const response = await login({ body: JSON.stringify(req.body) });
+    const response = await login({ body: JSON.stringify(req.body), headers: req.headers });
     res.status(response.statusCode).json(JSON.parse(response.body));
 });
 
 router.post("/register", async (req, res) => {
-    const response = await register({ body: JSON.stringify(req.body) });
+    const response = await register({ body: JSON.stringify(req.body), headers: req.headers });
     res.status(response.statusCode).json(JSON.parse(response.body));
 });
 
 router.post("/verify-email", async (req, res) => {
-    const response = await verifyEmail({ body: JSON.stringify(req.body) });
+    const response = await verifyEmail({ body: JSON.stringify(req.body), headers: req.headers });
     res.status(response.statusCode).json(JSON.parse(response.body));
 });
 
 router.post("/resend-verification", async (req, res) => {
-    const response = await resendVerification({ body: JSON.stringify(req.body) });
+    const response = await resendVerification({ body: JSON.stringify(req.body), headers: req.headers });
     res.status(response.statusCode).json(JSON.parse(response.body));
 });
 
 router.post("/logout", async (req, res) => {
-    const response = await logout({ body: JSON.stringify(req.body) });
+    const response = await logout({ body: JSON.stringify(req.body), headers: req.headers });
     res.status(response.statusCode).json(JSON.parse(response.body));
 });
 

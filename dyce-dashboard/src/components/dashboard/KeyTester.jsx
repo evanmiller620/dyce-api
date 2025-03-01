@@ -8,10 +8,15 @@ export const KeyTester = () => {
 
   const useKey = async (apiKey) => {
     setLoading(true);
+    const token = localStorage.getItem("accessToken");
     try {
       const response = await fetch('http://localhost:8080/get-wallet', {
         method: 'POST',
-        headers: { apikey: apiKey },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `${token}`,
+        },
+        body: JSON.stringify({ key: apiKey }),
       });
       const data = await response.json();
       console.log(data);
@@ -28,10 +33,10 @@ export const KeyTester = () => {
 
   return (
     <div>
-        <input type='text' placeholder='API key' onChange={e => setApiKey(e.target.value)}></input>
-        <button onClick={() => useKey(apiKey)} disabled={loading}>Test</button>
-        {error && <p className='error'>{error}</p>}
-        <label>Wallet: {addr}</label>
+      <input type='text' placeholder='API key' onChange={e => setApiKey(e.target.value)}></input>
+      <button onClick={() => useKey(apiKey)} disabled={loading}>Test</button>
+      {error && <p className='error'>{error}</p>}
+      <label>Wallet: {addr}</label>
     </div>
   )
 }

@@ -7,15 +7,13 @@ export const KeyManager = ({ wallets }) => {
   const [showPopup, setShowPopup] = useState(false);
 
   async function getKeys() {
-    const user = localStorage.getItem("userId");
-    console.log(user);
+    const token = localStorage.getItem("accessToken");
     const response = await fetch('http://localhost:8080/get-api-keys', {
-      method: 'POST',
       credentials: 'include',
       headers: {
         'Content-Type': 'application/json', // Specify JSON format
+        'Authorization': `${token}`,
       },
-      body: JSON.stringify({ user: user }),
     });
     if (!response.ok) throw new Error("Failed to fetch API keys");
     const data = await response.json();
@@ -27,11 +25,14 @@ export const KeyManager = ({ wallets }) => {
   }, [showPopup, wallets]);
 
   const deleteKey = async (name) => {
-    const user = localStorage.getItem("userId");
+    const token = localStorage.getItem("accessToken");
     const response = await fetch('http://localhost:8080/delete-api-key', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: name , user: user}),
+      headers: {
+        'Content-Type': 'application/json',
+        "authorization": `${token}`
+      },
+      body: JSON.stringify({ name: name }),
       credentials: 'include',
     });
     if (!response.ok) throw new Error("Failed to delete API key");
@@ -40,11 +41,14 @@ export const KeyManager = ({ wallets }) => {
   }
 
   const updateWallet = async (keyName, walletName) => {
-    const user = localStorage.getItem("userId");
+    const token = localStorage.getItem("accessToken");
     const response = await fetch('http://localhost:8080/set-wallet', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json'},
-      body: JSON.stringify({ keyName: keyName, walletName: walletName , user: user }),
+      headers: {
+        'Content-Type': 'application/json',
+        "authorization": `${token}`
+      },
+      body: JSON.stringify({ keyName: keyName, walletName: walletName }),
       credentials: 'include',
     });
     if (!response.ok) throw new Error("Failed to set wallet for API key");
@@ -77,14 +81,14 @@ export const KeyManager = ({ wallets }) => {
             </tr>
           </thead>
           <tbody>
-            {apiKeys.map(({name, key, wallet}) => (
+            {apiKeys.map(({ name, key, wallet }) => (
               <tr key={key}>
                 <td>{name}</td>
                 <td>{key}</td>
                 <td>
                   <select value={wallet || ""} onChange={(e) => updateWallet(name, e.target.value)}>
                     <option value="" disabled>Select wallet</option>
-                    {wallets.map(({name, address}) => (
+                    {wallets.map(({ name, address }) => (
                       <option key={address}>{name}</option>
                     ))}
                   </select>

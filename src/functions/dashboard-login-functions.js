@@ -6,13 +6,14 @@ import {
     SignUpCommand,
     ConfirmSignUpCommand,
     GetUserCommand,
-    // GlobalSignOutCommand,
+    GlobalSignOutCommand,
     AdminGetUserCommand,
     ResendConfirmationCodeCommand
 } from "@aws-sdk/client-cognito-identity-provider";
 import z from "zod";
 import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
+// import jwksClient from "jwks-rsa";
 // import { v4 as uuidv4 } from 'uuid';
 // import bcrypt from "bcryptjs";
 // import { id } from "ethers";
@@ -40,62 +41,12 @@ const signUpSchema = z.object({
         .regex(/[0-9]/, 'Password must contain at least one number')
 });
 
-// Helper function to get a user by email
-// const getUserByEmail = async (email) => {
-//     const command = new QueryCommand({
-//         TableName: USERS_TABLE,
-//         IndexName: "email-index",
-//         KeyConditionExpression: "email = :email",
-//         ExpressionAttributeValues: { ":email": email },
-//     });
 
-//     const { Items } = await dynamo.send(command);
-//     return Items.length ? Items[0] : null;
-// };
-
-// Helper function to get a user by id
-// const getUserById = async (user_id) => {
-//     const getUserCommand = new GetCommand({
-//         TableName: USERS_TABLE,
-//         Key: {
-//             id: user_id,
-//         },
-//     });
-
-//     const { Item } = await dynamo.send(getUserCommand);
-//     return Item;
-// }
-
-// // helper function to create new db entry for user if not existing. only used once so merged
-// const checkAndPutUser = async (idToken, email) => {
-//     try {
-//         const existingUser = await getUserById(idToken);
-
-//         if (existingUser) {
-//             console.log("User already exists. Skipping insert.");
-//         } else {
-//             const putCommand = new PutCommand({
-//                 TableName: USERS_TABLE,
-//                 Item: {
-//                     id: idToken,
-//                     email: email,
-//                     apiKeys: [],
-//                     wallets: [],
-//                 },
-//             });
-
-//             await dynamo.send(putCommand);
-//             console.log("New user inserted.");
-//         }
-//     } catch (error) {
-//         console.error("Error checking or inserting user:", error);
-//     }
-// };
-
-// Login route
 export const login = async (event) => {
     console.log("Received login request");
     const body = JSON.parse(event.body);
+    console.log("authorizer");
+    console.log(event);
 
     const email = body.email;
 
@@ -112,6 +63,7 @@ export const login = async (event) => {
         const authResponse = await cognitoClient.send(authCommand);
         console.log("Login successful");
         const idToken = authResponse.AuthenticationResult.IdToken
+        const accessToken = authResponse.AuthenticationResult.AccessToken;
         var decodedToken = jwt.decode(idToken); // get unchanging user id from token
         decodedToken = decodedToken["cognito:username"];
 
@@ -128,13 +80,14 @@ export const login = async (event) => {
             });
             await dynamo.send(putCommand);
         }
-
-        // req.session.userId = decodedToken;
-        // req.session.accessToken = authResponse.AuthenticationResult.AccessToken;
-
         return {
             statusCode: 200,
-            body: JSON.stringify({ authenticated: true, userId: decodedToken, accessToken: authResponse.AuthenticationResult.AccessToken }),
+            body: JSON.stringify({
+                authenticated: true,
+                userId: decodedToken,
+                accessToken: accessToken,
+                idToken: idToken,
+            }),
         };
     } catch (error) {
         console.error("Login error:", error);
@@ -160,7 +113,7 @@ export const register = async (event) => {
         await cognitoClient.send(signUpCommand);
         return { statusCode: 201, body: JSON.stringify({ message: "Verification email sent." }) };
     } catch (error) {
-        
+
         if (error.name === "UsernameExistsException") {
             console.error("Registration error:", error.name);
             return { statusCode: 401, body: JSON.stringify({ message: "Email already in use!" }) };
@@ -211,20 +164,17 @@ export const resendVerification = async (event) => {
 };
 
 // Logout route
-// didn't get working. since state is saved in client, logout just deletes the token currently
-// we need a way to comunicate with cognito to invalidate the token
 export const logout = async (event) => {
     console.log("Received logout request");
-    console.log(event);
-    return { statusCode: 200, body: JSON.stringify({ message: "Logout successful" }) };
-    // try { 
-    //     const signOutCommand = new GlobalSignOutCommand({ AccessToken: token });
-    //     await cognitoClient.send(signOutCommand);
-    //     return { statusCode: 200, body: JSON.stringify({ message: "Logout successful" }) };
-    // } catch (error) {
-    //     console.log("Logout error:", error);
-    //     return { statusCode: 400, body: JSON.stringify({ message: "Logout failed" }) };
-    // }
+    try {
+        const token = event.headers.Authorization || event.headers.authorization;
+        const signOutCommand = new GlobalSignOutCommand({ AccessToken: token });
+        await cognitoClient.send(signOutCommand);
+        return { statusCode: 200, body: JSON.stringify({ message: "Logout successful" }) };
+    } catch (error) {
+        console.log("Logout error:", error);
+        return { statusCode: 400, body: JSON.stringify({ message: "Logout failed" }) };
+    }
 };
 
 // check if user is authenticated
@@ -255,3 +205,48 @@ export const authCheck = async (event) => {
         };
     }
 };
+
+
+export const getAuth = async (event) => {
+    try {
+        const token = event.headers.Authorization || event.headers.authorization;
+        if (!token) {
+            console.log("No token provided");
+            return {
+                statusCode: 401,
+                body: JSON.stringify({ authenticated: false, message: "No token provided" }),
+            };
+        }
+
+        const getUserCommand = new GetUserCommand({ AccessToken: token });
+        const user = await cognitoClient.send(getUserCommand);
+        return {
+            statusCode: 200,
+            body: JSON.stringify({ authenticated: true, user: user.Username }),
+        };
+    } catch (error) {
+        console.error("Auth check error:", error);
+        return {
+            statusCode: 401,
+            body: JSON.stringify({ authenticated: false, message: "Invalid or expired token" }),
+        };
+    }
+}
+
+export const getUserById = async (id) => {
+    const getUserCommand = new GetCommand({
+        TableName: USERS_TABLE,
+        Key: { id: id },
+    });
+    const { Item } = await dynamo.send(getUserCommand);
+    return Item;
+}
+
+export const getAuthThenUser = async (event) => {
+    const auth = await getAuth(event);
+    if (auth.statusCode !== 200) return null;
+    const parsedBody = JSON.parse(auth.body);
+    const userId = parsedBody.user;
+    const user = await getUserById(userId);
+    return user;
+}

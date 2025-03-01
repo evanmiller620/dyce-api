@@ -44,9 +44,9 @@ export const Register = () => {
         email: username,
         password: password
       });
-      navigate('/verify', { state: { email: username }});
+      navigate('/verify', { state: { email: username } });
     } catch (e) {
-      setError(e.message); 
+      setError(e.message);
     } finally {
       setLoading(false);
     }
@@ -59,7 +59,7 @@ export const Register = () => {
         <input type='email' placeholder='Email address' onChange={e => setUsername(e.target.value)} className={error && error.toLowerCase().includes("email") ? 'error' : ''} required />
         <input type='password' placeholder='Password' onChange={e => setPassword(e.target.value)} className={error && error.toLowerCase().includes("password") ? 'error' : ''} required />
         <input type='password' placeholder='Confirm password' onChange={e => setConfirmPassword(e.target.value)} className={error && error.toLowerCase().includes("match") ? 'error' : ''} required />
-        <PasswordChecklist password={password} confirmPassword={confirmPassword} onChange={(valid) => setValid(valid)}/>
+        <PasswordChecklist password={password} confirmPassword={confirmPassword} onChange={(valid) => setValid(valid)} />
         {error && <p className="error-message">{error}</p>}
         <button type="submit" disabled={loading}>Submit</button>
         <p>Have an account?<a href='login'>Sign in</a></p>

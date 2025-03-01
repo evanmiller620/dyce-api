@@ -15,14 +15,14 @@ export const AuthProvider = ({ children }) => {
       headers: { Authorization: `${token}` },
       credentials: "include",
     })
-    .then(res => res.json())
-    .then(data => {
-      if (data.authenticated) setUser(data.user);
-      else setUser(null);
-    })
-    .catch(() => {
-      setUser(null);
-    });
+      .then(res => res.json())
+      .then(data => {
+        if (data.authenticated) setUser(data.user);
+        else setUser(null);
+      })
+      .catch(() => {
+        setUser(null);
+      });
   };
 
   return (

@@ -9,7 +9,7 @@ import awsServerlessExpress from "aws-serverless-express";
 import dotenv from "dotenv";
 dotenv.config();
 
-import {business_handler_local} from "./src/functions/business.js";
+import { business_handler_local } from "./src/functions/business.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -39,7 +39,7 @@ const dynamoStore = new DynamoDBStore({
 
 app.use(
   session({
-    secret: process.env.SECRET  || "default-secret", // needs a default for actions
+    secret: process.env.SECRET || "default-secret", // needs a default for actions
     resave: false,
     saveUninitialized: false,
     store: dynamoStore,
@@ -47,18 +47,44 @@ app.use(
 );
 
 // ROUTES
-const routesPath = path.join(__dirname, "src/routes");
-fs.readdirSync(routesPath).forEach((file) => {
-  import(`./src/routes/${file}`).then((route) => {
-    app.use("/", route.default);
-  }).catch((err) => {
-    console.error(`Failed to load route: ${file}`, err);
-  });;
-});
+if (!process.env.AWS_EXECUTION_ENV) {
+  const routesPath = path.join(__dirname, "src/routes");
+  fs.readdirSync(routesPath).forEach((file) => {
+    import(`./src/routes/${file}`).then((route) => {
+      app.use("/", route.default);
+    }).catch((err) => {
+      console.error(`Failed to load route: ${file}`, err);
+    });;
+  });
+}
 
-app.get("/", (req, res) => {
-  console.log("Connection established to root");
-  res.json({ message: "API root connection" });
+// export const root_test = async (event) => {
+//   console.log(event);
+//   try {
+//     const claims = event.requestContext.authorizer.claims;
+//     const userId = claims["cognito:username"];  // Unique user identifier
+//     const email = claims["email"];  // User email (if included in Cognito attributes)
+//     console.log("Authenticated user:", userId, "Email:", email);
+//   }
+//   catch (error) {
+//     console.error("Failed to authenticate user", error);
+//     var event_flattened = JSON.stringify(event, null, 2);
+//     var output_message = "Shi broken: "+ event_flattened;
+//     return {
+//       statusCode: 401,
+//       body: JSON.stringify({ message: output_message }),
+//     };
+//   }
+//   return {
+//     statusCode: 200,
+//     body: JSON.stringify({ message: "Success" }), //, userId, email
+//   };
+// };
+
+app.get("/", async (req, res) => {
+  // const response = await root_test({ body: JSON.stringify(req.body) });
+  // res.status(response.statusCode).json(JSON.parse(response.body));
+  res.status(200).json({ message: "Hello froom root!" });
 });
 
 app.get("/business", business_handler_local);
@@ -82,4 +108,4 @@ if (process.env.AWS_EXECUTION_ENV) {
 // AWS Lambda handler
 export { handler };
 // Local server
-export {app, server};
+export { app, server };

@@ -11,7 +11,7 @@ export const Logout = () => {
       setUser(null);
       return;
     }
-    
+
     fetch("http://localhost:8080/logout", {
       method: "POST",
       headers: { Authorization: `${token}` }
@@ -19,12 +19,11 @@ export const Logout = () => {
       .then(res => res.json())
       .then(data => {
         if (data.success) {
-          localStorage.removeItem("accessToken");
           setUser(null);
         }
       });
-      localStorage.removeItem("accessToken");
-      setUser(null);
+    // localStorage.removeItem("accessToken");
+    setUser(null);
   }
 
   return <button onClick={handleLogout}>Logout</button>;

@@ -18,6 +18,13 @@ provider:
       Action:
         - dynamodb:*
       Resource: "arn:aws:dynamodb:us-east-1:*:table/DyceTable"
+  httpApi:
+    authorizers:
+      cognitoAuthorizer:
+        type: jwt
+        identitySource: "$request.header.Authorization"
+        issuerUrl: "https://cognito-idp.us-east-1.amazonaws.com/us-east-1_k3o0XkoOy"
+        audience: "bigcqvpp9bdrpqh3ema863j9h"
 
 # include/exclude rules for lambda function
 package:
@@ -55,7 +62,7 @@ custom:
 # schema that describes what events go to what functions
 functions:
   app:
-    handler: index.handler
+    handler: index.root_test
     events:
       - http:
           path: /

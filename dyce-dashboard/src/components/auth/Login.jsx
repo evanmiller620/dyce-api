@@ -10,12 +10,11 @@ async function loginUser(credentials) {
     body: JSON.stringify(credentials),
     credentials: 'include',
   });
-  
+
   const data = await response.json();
   if (!response.ok)
     throw new Error(data?.message || `Error: ${response.status}`);
   localStorage.setItem("accessToken", data.accessToken);
-  localStorage.setItem("userId", data.userId);
   return data;
 }
 
@@ -36,7 +35,6 @@ export const Login = () => {
         password: password
       });
       setUser(data.userId);
-      window.location.reload();
     } catch (e) {
       setError(e.message);
     } finally {

@@ -2,7 +2,7 @@ import React, { useEffect } from 'react'
 import { useAuth } from './AuthContext';
 import { Login } from './Login';
 
-export const ProtectedRoute = ({ children }) => {  
+export const ProtectedRoute = ({ children }) => {
   const { user, getUser } = useAuth();
 
   useEffect(() => {

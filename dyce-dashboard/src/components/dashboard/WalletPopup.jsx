@@ -9,22 +9,29 @@ export const WalletPopup = ({ onClose }) => {
 
   const addWallet = async (name) => {
     setLoading(true);
+    console.log("Adding wallet");
     try {
+      const userId = localStorage.getItem("userId");
+      const token = localStorage.getItem("accessToken");
       const response = await fetch('http://localhost:8080/add-wallet', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: name, address: walletAddress, key: walletKey }),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `${token}`
+        },
+        body: JSON.stringify({ name: name, address: walletAddress, key: walletKey, userId: userId }),
         credentials: 'include',
       });
       const data = await response.json();
       if (!response.ok)
         throw new Error(data.message || "Failed to add wallet");
       setError(null);
-    } catch (e) {
-      setError(e.message);
-    } finally {
       setLoading(false);
       onClose();
+    } catch (e) {
+      setError(e.message);
+      console.error(e);
+      setLoading(false);
     }
   }
 
