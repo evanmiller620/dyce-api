@@ -1,5 +1,7 @@
 import { useState } from "react";
 import Copy from "@/assets/icons/copy.svg";
+import { useAPIClient } from '../DyceApi';
+
 
 export const KeyPopup = ({ onClose }) => {
   const [keyName, setKeyName] = useState("");
@@ -7,26 +9,18 @@ export const KeyPopup = ({ onClose }) => {
   const [loading, setLoading] = useState(false);
   const [apiKey, setApiKey] = useState("");
   const [error, setError] = useState("");
+  const api = useAPIClient();
 
   const createKey = async (name) => {
     setLoading(true);
     const user = localStorage.getItem("userId");
-    const token = localStorage.getItem("accessToken");
     try {
-      const response = await fetch('http://localhost:8080/generate-api-key', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `${token}`,
-        },
-        body: JSON.stringify({ name: name, user: user }),
-        credentials: 'include',
-      });
+      const response = await api.generateApiKey(name, user);
       const data = await response.json();
       if (!response.ok)
         throw new Error(data.message || "Failed to create API key");
       setKeyReady(true);
-      setApiKey(data.apiKey);
+      setApiKey(response.apiKey);
       setError(null);
     } catch (e) {
       setError(e.message);

@@ -1,23 +1,22 @@
 import React, { useEffect, useState } from 'react'
 import Trash from "@/assets/icons/trash.svg";
 import { WalletPopup } from './WalletPopup';
+import { useAPIClient } from '../DyceApi';
 
 export const WalletManager = ({ wallets, setWallets }) => {
   const [showPopup, setShowPopup] = useState(false);
+  const api = useAPIClient();
 
   async function getWallets() {
-    const token = localStorage.getItem("accessToken");
-    const response = await fetch('http://localhost:8080/get-wallets', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        "authorization": `${token}`
-      },
-      credentials: 'include',
-    });
-    if (!response.ok) throw new Error("Failed to fetch wallets");
-    const data = await response.json();
-    setWallets(data.wallets);
+    try {
+      const response = await api.getWallets();
+      if (!response.ok) throw new Error("Failed to fetch wallets");
+      const data = await response.json();
+      setWallets(data.wallets);
+    }
+    catch (error) {
+      console.error("Request failed: ", error);
+    }
   }
 
   useEffect(() => {
@@ -25,19 +24,15 @@ export const WalletManager = ({ wallets, setWallets }) => {
   }, [showPopup]);
 
   const deleteWallet = async (name) => {
-    const token = localStorage.getItem("accessToken");
-    const response = await fetch('http://localhost:8080/remove-wallet', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        "authorization": `${token}`
-      },
-      body: JSON.stringify({ name: name }),
-      credentials: 'include',
-    });
-    if (!response.ok) throw new Error("Failed to delete wallet");
-    const data = await response.json();
-    setWallets(wallets.filter(key => key.name !== name));
+    try {
+      const response = await api.deleteWallet(name);
+      if (!response.ok) throw new Error("Failed to delete wallet");
+      
+      setWallets(wallets.filter(key => key.name !== name));
+    } catch (error) {
+      console.error("Request failed: ", error);
+    }
+    
   }
 
   return (

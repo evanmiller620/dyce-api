@@ -44,6 +44,7 @@ const signUpSchema = z.object({
 
 export const login = async (event) => {
     console.log("Received login request");
+    console.log(event);
     const body = JSON.parse(event.body);
     console.log("authorizer");
     console.log(event);
@@ -189,7 +190,7 @@ export const authCheck = async (event) => {
                 body: JSON.stringify({ authenticated: false, message: "No token provided" }),
             };
         }
-
+        console.log(token)
         const getUserCommand = new GetUserCommand({ AccessToken: token });
         const user = await cognitoClient.send(getUserCommand);
         console.log("User authenticated");
@@ -206,33 +207,6 @@ export const authCheck = async (event) => {
     }
 };
 
-
-export const getAuth = async (event) => {
-    try {
-        const token = event.headers.Authorization || event.headers.authorization;
-        if (!token) {
-            console.log("No token provided");
-            return {
-                statusCode: 401,
-                body: JSON.stringify({ authenticated: false, message: "No token provided" }),
-            };
-        }
-
-        const getUserCommand = new GetUserCommand({ AccessToken: token });
-        const user = await cognitoClient.send(getUserCommand);
-        return {
-            statusCode: 200,
-            body: JSON.stringify({ authenticated: true, user: user.Username }),
-        };
-    } catch (error) {
-        console.error("Auth check error:", error);
-        return {
-            statusCode: 401,
-            body: JSON.stringify({ authenticated: false, message: "Invalid or expired token" }),
-        };
-    }
-}
-
 export const getUserById = async (id) => {
     const getUserCommand = new GetCommand({
         TableName: USERS_TABLE,
@@ -243,7 +217,7 @@ export const getUserById = async (id) => {
 }
 
 export const getAuthThenUser = async (event) => {
-    const auth = await getAuth(event);
+    const auth = await authCheck(event);
     if (auth.statusCode !== 200) return null;
     const parsedBody = JSON.parse(auth.body);
     const userId = parsedBody.user;

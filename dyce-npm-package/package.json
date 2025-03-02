@@ -1,0 +1,17 @@
+{
+  "name": "dyce-package",
+  "version": "1.0.0",
+  "description": "API caller functions",
+  "main": "ApiClient.js",
+  "scripts": {
+    "test": "test"
+  },
+  "keywords": [
+    "Dyce",
+    "crypto",
+    "payment",
+    "API"
+  ],
+  "author": "Andrew and Evan",
+  "license": "ISC"
+}

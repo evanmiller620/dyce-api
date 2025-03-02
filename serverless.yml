@@ -110,6 +110,76 @@ functions:
       - http:
           path: /logout
           method: POST
+  
+  addWallet:
+    handler: src/functions/dashboard-wallets-functions.addWallet
+    events:
+      - http:
+          path: /add-wallet
+          method: POST
+  
+  getWallets:
+    handler: src/functions/dashboard-wallets-functions.getWallets
+    events:
+      - http:
+          path: /get-wallets
+          method: POST
+          
+  removeWallet:
+    handler: src/functions/dashboard-wallets-functions.removeWallet
+    events:
+      - http:
+          path: /remove-wallet
+          method: POST
+  
+  getWalletBalance:
+    handler: src/functions/dashboard-wallets-functions.getWalletBalance
+    events:
+      - http:
+          path: /get-wallet-balance
+          method: POST
+
+  generateApiKey:
+    handler: src/functions/dashboard-keys-functions.generateApiKey
+    events:
+      - http:
+          path: /generate-api-key
+          method: POST
+  
+  getApiKeys:
+    handler: src/functions/dashboard-keys-functions.getApiKeys
+    events:
+      - http:
+          path: /get-api-keys
+          method: GET
+
+  deleteApiKey:
+    handler: src/functions/dashboard-keys-functions.deleteApiKey
+    events:
+      - http:
+          path: /delete-api-key 
+          method: POST
+  
+  useApiKey:
+    handler: src/functions/dashboard-keys-functions.useApiKey
+    events:
+      - http:
+          path: /use-api-key
+          method: POST
+  
+  setWallet:
+    handler: src/functions/dashboard-keys-functions.setWallet
+    events:
+      - http:
+          path: /set-wallet
+          method: POST
+
+  getWallet:
+    handler: src/functions/dashboard-keys-functions.getWallet
+    events:
+      - http:
+          path: /get-wallet
+          method: POST
 
   business:
     handler: src/middlewear/business.handler

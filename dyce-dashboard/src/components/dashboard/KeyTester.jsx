@@ -1,25 +1,20 @@
 import React, { useState } from 'react'
+import { useAPIClient } from '../DyceApi';
+
 
 export const KeyTester = () => {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [addr, setAddr] = useState("");
   const [apiKey, setApiKey] = useState("");
+  const api = useAPIClient();
 
   const useKey = async (apiKey) => {
     setLoading(true);
-    const token = localStorage.getItem("accessToken");
     try {
-      const response = await fetch('http://localhost:8080/get-wallet', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `${token}`,
-        },
-        body: JSON.stringify({ key: apiKey }),
-      });
+      const response = await api.getWallet(apiKey);
       const data = await response.json();
-      console.log(data);
+      console.log(response);
       if (!response.ok)
         throw new Error(data.message || "Failed to get wallet address for API key");
       setError(null);

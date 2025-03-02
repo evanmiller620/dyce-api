@@ -6,21 +6,24 @@ import { Register } from './components/auth/Register.jsx'
 import { Verify } from './components/auth/Verify.jsx'
 import { AuthProvider } from './components/auth/AuthContext.jsx'
 import { ProtectedRoute } from './components/auth/ProtectedRoute.jsx'
+import { APIClientProvider } from './components/DyceApi.jsx'
 
 function App() {
 
   return (
     <div className='wrapper'>
       <BrowserRouter>
-        <AuthProvider>
-          <Routes>
-            <Route path='/register' element={<Register />} />
-            <Route path='/verify' element={<Verify />} />
-            <Route path='/dashboard' element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path='/preferences' element={<ProtectedRoute><Preferences /></ProtectedRoute>} />
-            <Route path='*' element={<Navigate to="/dashboard" />} />
-          </Routes>
-        </AuthProvider>
+        <APIClientProvider>
+          <AuthProvider>
+            <Routes>
+              <Route path='/register' element={<Register />} />
+              <Route path='/verify' element={<Verify />} />
+              <Route path='/dashboard' element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+              <Route path='/preferences' element={<ProtectedRoute><Preferences /></ProtectedRoute>} />
+              <Route path='*' element={<Navigate to="/dashboard" />} />
+            </Routes>
+          </AuthProvider>
+        </APIClientProvider>
       </BrowserRouter>
     </div>
   )

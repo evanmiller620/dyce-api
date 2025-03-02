@@ -3,21 +3,8 @@ import PropTypes from 'prop-types'
 import { useNavigate } from 'react-router-dom'
 import '@/assets/styles/Login.css'
 import { PasswordChecklist } from './PasswordChecklist';
+import { useAPIClient } from '../DyceApi';
 
-async function registerUser(credentials) {
-  const response = await fetch('http://localhost:8080/register', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(credentials),
-    credentials: 'include',
-  });
-
-  const data = await response.json();
-  if (!response.ok) {
-    throw new Error(data?.message || `Error: ${response.status}`);
-  }
-  return data;
-}
 
 export const Register = () => {
   const [username, setUsername] = useState("");
@@ -27,6 +14,7 @@ export const Register = () => {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const api = useAPIClient();
 
   const handleSubmit = async e => {
     e.preventDefault();
@@ -40,10 +28,16 @@ export const Register = () => {
 
     setLoading(true);
     try {
-      await registerUser({
+      const response = await api.register({
         email: username,
         password: password
       });
+      const data = await response.json();
+      if (!response.ok) {
+
+        setError(data.message || "Registration failed");
+        return;
+      }
       navigate('/verify', { state: { email: username } });
     } catch (e) {
       setError(e.message);

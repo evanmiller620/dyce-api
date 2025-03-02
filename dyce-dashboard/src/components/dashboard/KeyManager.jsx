@@ -1,23 +1,25 @@
 import React, { useEffect, useState } from 'react'
 import Trash from "@/assets/icons/trash.svg";
 import { KeyPopup } from './KeyPopup';
+import { useAPIClient } from '../DyceApi';
+
 
 export const KeyManager = ({ wallets }) => {
   const [apiKeys, setApiKeys] = useState([]);
   const [showPopup, setShowPopup] = useState(false);
+  const api = useAPIClient();
 
   async function getKeys() {
-    const token = localStorage.getItem("accessToken");
-    const response = await fetch('http://localhost:8080/get-api-keys', {
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json', // Specify JSON format
-        'Authorization': `${token}`,
-      },
-    });
-    if (!response.ok) throw new Error("Failed to fetch API keys");
-    const data = await response.json();
-    setApiKeys(data.apiKeys);
+    // const token = localStorage.getItem("accessToken");
+    try {
+      const response = await api.getApiKeys();
+      if (!response.ok) throw new Error("Failed to fetch API keys");
+      const data = await response.json();
+      setApiKeys(data.apiKeys);
+    }
+    catch (error) {
+      console.error("Request failed: ", error);
+    }
   }
 
   useEffect(() => {
@@ -25,34 +27,15 @@ export const KeyManager = ({ wallets }) => {
   }, [showPopup, wallets]);
 
   const deleteKey = async (name) => {
-    const token = localStorage.getItem("accessToken");
-    const response = await fetch('http://localhost:8080/delete-api-key', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        "authorization": `${token}`
-      },
-      body: JSON.stringify({ name: name }),
-      credentials: 'include',
-    });
-    if (!response.ok) throw new Error("Failed to delete API key");
+    const response = await api.deleteApiKey(name);
     const data = await response.json();
+    if (!response.ok) throw new Error("Failed to delete API key");
     setApiKeys(apiKeys.filter(key => key.name !== name));
   }
 
   const updateWallet = async (keyName, walletName) => {
-    const token = localStorage.getItem("accessToken");
-    const response = await fetch('http://localhost:8080/set-wallet', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        "authorization": `${token}`
-      },
-      body: JSON.stringify({ keyName: keyName, walletName: walletName }),
-      credentials: 'include',
-    });
+    const response = await api.updateWallet(keyName, walletName);
     if (!response.ok) throw new Error("Failed to set wallet for API key");
-    const data = await response.json();
     await getKeys();
   }
 

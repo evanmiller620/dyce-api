@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useAPIClient } from '../DyceApi';
+
 
 export const WalletPopup = ({ onClose }) => {
   const [walletName, setWalletName] = useState("");
@@ -6,22 +8,13 @@ export const WalletPopup = ({ onClose }) => {
   const [walletAddress, setWalletAddress] = useState("");
   const [walletKey, setWalletKey] = useState("");
   const [error, setError] = useState("");
+  const api = useAPIClient();
 
   const addWallet = async (name) => {
     setLoading(true);
     console.log("Adding wallet");
     try {
-      const userId = localStorage.getItem("userId");
-      const token = localStorage.getItem("accessToken");
-      const response = await fetch('http://localhost:8080/add-wallet', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `${token}`
-        },
-        body: JSON.stringify({ name: name, address: walletAddress, key: walletKey, userId: userId }),
-        credentials: 'include',
-      });
+      const response = await api.addWallet(name, walletAddress, walletKey);
       const data = await response.json();
       if (!response.ok)
         throw new Error(data.message || "Failed to add wallet");

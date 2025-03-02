@@ -9,7 +9,7 @@ router.post("/add-wallet", async (req, res) => {
     res.status(response.statusCode).json(JSON.parse(response.body));
 });
 
-router.post("/get-wallets", async (req, res) => {
+router.get("/get-wallets", async (req, res) => {
     const response = await getWallets({ headers: req.headers });
     res.status(response.statusCode).json(JSON.parse(response.body));
 });

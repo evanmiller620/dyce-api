@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import '@/assets/styles/Verify.css';
 import { useAuth } from './AuthContext';
 import { useLocation } from 'react-router-dom';
+import { useAPIClient } from '../DyceApi';
 
 export const Verify = () => {
   const { setUser } = useAuth();
@@ -13,6 +14,7 @@ export const Verify = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { email } = location.state || {};
+  const api = useAPIClient();
 
   const handleVerify = async (e) => {
     e.preventDefault();
@@ -31,20 +33,12 @@ export const Verify = () => {
     setError(null);
     
     try {
-      const response = await fetch('http://localhost:8080/verify-email', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-          email: email,
-          code: verificationCode 
-        }),
-        credentials: 'include',
-      });
-      
+      const body = { 
+        email: email,
+        code: verificationCode 
+      }
+      const response = await api.verifyEmail(body);
       const data = await response.json();
-      
       if (!response.ok) {
         setError(data.message || "Verification failed");
       } else {
@@ -71,17 +65,8 @@ export const Verify = () => {
     setError(null);
     
     try {
-      const response = await fetch('http://localhost:8080/resend-verification', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email }),
-        credentials: 'include',
-      });
-      
+      const response = await api.resendVerification({ email });
       const data = await response.json();
-      
       if (!response.ok) {
         setError(data.message || "Failed to resend verification code");
       } else {
