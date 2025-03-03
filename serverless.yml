@@ -9,6 +9,8 @@ provider:
   region: us-east-1
   stage: main
   stackName: dyce-api-main
+  apiGateway:
+    apiKeySourceType: HEADER
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -123,7 +125,7 @@ functions:
     events:
       - http:
           path: /get-wallets
-          method: POST
+          method: GET
           
   removeWallet:
     handler: src/functions/dashboard-wallets-functions.removeWallet

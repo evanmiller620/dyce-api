@@ -1,3 +1,5 @@
+const apiKey = import.meta.env.VITE_API_KEY;
+
 class APIClient {
   constructor(token) {
     this.baseURL = "http://localhost:8080"; // Local
@@ -11,9 +13,10 @@ class APIClient {
 
   async request(endpoint, method = 'POST', body = null) {
     try {
-      const options = {
+      var options = {
         method: method,
-        credentials: 'include',
+        // credentials: 'include',
+        // mode: 'cors',
       };
 
       if (body) {
@@ -23,10 +26,12 @@ class APIClient {
         options.headers = {
           'Content-Type': 'application/json',
           'Authorization': `${this.token}`,
+          "x-api-key": apiKey
         }
       } else {
         options.headers = {
           'Content-Type': 'application/json',
+          "x-api-key": apiKey
         }
       }
 
@@ -44,11 +49,11 @@ class APIClient {
   }
 
   async generateApiKey(name, user) {
-    return this.request('generate-api-key', 'POST',{ name: name, user: user } );
+    return this.request('generate-api-key', 'POST', { name: name, user: user });
   }
 
   async deleteApiKey(name) {
-    return this.request('delete-api-key', 'POST', {name});
+    return this.request('delete-api-key', 'POST', { name });
   }
 
   // WALLET FUNCTIONS
@@ -76,7 +81,7 @@ class APIClient {
   async register(credentials) {
     return this.request('register', 'POST', credentials);
   }
-  
+
   async verifyEmail(credentials) {
     return this.request('verify-email', 'POST', credentials);
   }

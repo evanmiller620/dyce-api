@@ -20,7 +20,7 @@ export const KeyPopup = ({ onClose }) => {
       if (!response.ok)
         throw new Error(data.message || "Failed to create API key");
       setKeyReady(true);
-      setApiKey(response.apiKey);
+      setApiKey(data.apiKey);
       setError(null);
     } catch (e) {
       setError(e.message);

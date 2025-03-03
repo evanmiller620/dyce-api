@@ -26,6 +26,7 @@ export const Login = () => {
       const response = await api.login(credentials);
       if (!response.ok) {
         setError(response.message || "Login failed");
+        setLoading(false);
         return;
       }
       const data = await response.json();
