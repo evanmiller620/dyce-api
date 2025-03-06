@@ -1,40 +1,9 @@
 // import express from "express";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, GetCommand, QueryCommand, UpdateCommand, DeleteCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
 import crypto from "crypto";
-import dotenv from "dotenv";
 import { getAuthThenUser } from "./dashboard-login-functions.js";
+import { getKey, createKey, deleteKey, getKeysByUser, setUseCount, setWalletName } from "./dynamo-functions.js"
+import dotenv from "dotenv";
 dotenv.config();
-
-
-// Connect to DYNAMO
-const client = new DynamoDBClient({ region: process.env.AWS_REGION });
-const dynamo = DynamoDBDocumentClient.from(client);
-const KEYS_TABLE = "KeyTable";
-// const USERS_TABLE = "DyceTable";
-
-// Helper function to get an API key data
-const getKey = async (key) => {
-    const getKeyCommand = new GetCommand({
-        TableName: KEYS_TABLE,
-        Key: { key: key },
-    });
-    const { Item } = await dynamo.send(getKeyCommand);
-    return Item;
-}
-
-// Helper function to get list of a user's API keys
-const getKeysByUser = async (id) => {
-    const command = new QueryCommand({
-        TableName: KEYS_TABLE,
-        IndexName: "userId-index",
-        KeyConditionExpression: "userId = :userId",
-        ExpressionAttributeValues: { ":userId": id },
-    });
-
-    const { Items } = await dynamo.send(command);
-    return Items.length ? Items : null;
-}
 
 // Generate API key route
 export const generateApiKey = async (event) => {
@@ -49,18 +18,7 @@ export const generateApiKey = async (event) => {
         return { statusCode: 400, body: JSON.stringify({ message: "Key name already in use!" }) };
     }
     const newKey = crypto.randomBytes(32).toString("hex")
-
-    const command = new PutCommand({
-        TableName: KEYS_TABLE,
-        Item: {
-            key: newKey,
-            userId: user.id,
-            name: name,
-            wallet: user.wallets.length ? user.wallets[0].name : null,
-            useCount: 0,
-        },
-    });
-    await dynamo.send(command);
+    await createKey(newKey, user.id, name, user.wallets.length ? user.wallets[0].name : null)
     return { statusCode: 200, body: JSON.stringify({ apiKey: newKey }) };
 };
 
@@ -92,13 +50,7 @@ export const deleteApiKey = async (event) => {
 
     const userKeys = await getKeysByUser(user.id);
     const apiKey = userKeys.find(apiKey => apiKey.name === name);
-
-    const command = new DeleteCommand({
-        TableName: KEYS_TABLE,
-        Key: { key: apiKey.key },
-    });
-    await dynamo.send(command);
-
+    await deleteKey(apiKey.key);
     return { statusCode: 200, body: JSON.stringify({ message: "API key deleted successfully" }) };
 };
 
@@ -108,19 +60,10 @@ export const useApiKey = async (event) => {
     console.log("Received use key request");
     const { key } = JSON.parse(event.body);
     if (!key) return { statusCode: 401, body: JSON.stringify({ message: "API key required" }) };
-    const user = await getAuthThenUser(event);
-    if (!user) return { statusCode: 401, body: JSON.stringify({ message: "Unauthorized" }) };
     const apiKey = await getKey(key);
     if (!apiKey) return { statusCode: 401, body: JSON.stringify({ message: "Invalid API key" }) };
 
-    const command = new UpdateCommand({
-        TableName: KEYS_TABLE,
-        Key: { key: apiKey.key },
-        UpdateExpression: "SET useCount = :useCount",
-        ExpressionAttributeValues: { ":useCount": apiKey.useCount + 1 },
-    });
-    await dynamo.send(command);
-
+    await setUseCount(apiKey.key, apiKey.useCount + 1);
     return { statusCode: 200, body: JSON.stringify({ message: "API Key used successfully", useCount: apiKey.useCount }) };
 };
 
@@ -135,20 +78,13 @@ export const setWallet = async (event) => {
     if (!walletName) return { statusCode: 400, body: JSON.stringify({ message: "Wallet name required" }) };
     const wallet = user.wallets.find(wallet => wallet.name === walletName);
     if (!wallet) return { statusCode: 400, body: JSON.stringify({ message: "Wallet not found" }) };
-    if (!user) return { statusCode: 400, body: JSON.stringify({ message: "User not found" }) };
 
     const userKeys = await getKeysByUser(user.id);
     if (!userKeys) return { statusCode: 400, body: JSON.stringify({ message: "API keys not found" }) };
     const key = userKeys.find(apiKey => apiKey.name === keyName)?.key;
     if (!key) return { statusCode: 404, body: JSON.stringify({ message: "API key not found" }) };
 
-    const command = new UpdateCommand({
-        TableName: KEYS_TABLE,
-        Key: { key },
-        UpdateExpression: "SET wallet = :wallet",
-        ExpressionAttributeValues: { ":wallet": wallet.name },
-    });
-    await dynamo.send(command);
+    await setWalletName(key, wallet.name);
     return { statusCode: 200, body: JSON.stringify({ message: "Set wallet successfully" }) };
 };
 

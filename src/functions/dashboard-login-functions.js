@@ -1,5 +1,4 @@
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, GetCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
+import { getOrAddUser, getUserById } from "./dynamo-functions.js"
 import {
     CognitoIdentityProviderClient,
     InitiateAuthCommand,
@@ -18,12 +17,6 @@ import jwt from "jsonwebtoken";
 // import bcrypt from "bcryptjs";
 // import { id } from "ethers";
 dotenv.config();
-
-
-// Connect to dynamo
-const client = new DynamoDBClient({ region: process.env.AWS_REGION });
-const dynamo = DynamoDBDocumentClient.from(client);
-const USERS_TABLE = "DyceTable";
 
 // connecto to cognito
 const cognitoClient = new CognitoIdentityProviderClient({ region: process.env.AWS_REGION });
@@ -50,6 +43,7 @@ export const login = async (event) => {
     console.log(event);
 
     const email = body.email;
+    const password = body.password;
 
     try {
         const authCommand = new InitiateAuthCommand({
@@ -57,10 +51,9 @@ export const login = async (event) => {
             ClientId: CLIENT_ID,
             AuthParameters: {
                 USERNAME: email,
-                PASSWORD: body.password
+                PASSWORD: password
             }
         });
-
         const authResponse = await cognitoClient.send(authCommand);
         console.log("Login successful");
         const idToken = authResponse.AuthenticationResult.IdToken
@@ -68,19 +61,7 @@ export const login = async (event) => {
         var decodedToken = jwt.decode(idToken); // get unchanging user id from token
         decodedToken = decodedToken["cognito:username"];
 
-        const getUserCommand = new GetCommand({
-            TableName: USERS_TABLE,
-            Key: { id: decodedToken },
-        });
-        const { Item } = await dynamo.send(getUserCommand);
-        // if user doesn't already exist in table, add them
-        if (!Item) {
-            const putCommand = new PutCommand({
-                TableName: USERS_TABLE,
-                Item: { id: decodedToken, email: body.email, apiKeys: [], wallets: [] },
-            });
-            await dynamo.send(putCommand);
-        }
+        await getOrAddUser(decodedToken, email);
         return {
             statusCode: 200,
             body: JSON.stringify({
@@ -190,10 +171,9 @@ export const authCheck = async (event) => {
                 body: JSON.stringify({ authenticated: false, message: "No token provided" }),
             };
         }
-        console.log(token)
         const getUserCommand = new GetUserCommand({ AccessToken: token });
         const user = await cognitoClient.send(getUserCommand);
-        console.log("User authenticated");
+        console.log(`User authenticated with token ${token.slice(0, 4)}...${token.slice(-4)}`)
         return {
             statusCode: 200,
             body: JSON.stringify({ authenticated: true, user: user.Username }),
@@ -206,15 +186,6 @@ export const authCheck = async (event) => {
         };
     }
 };
-
-export const getUserById = async (id) => {
-    const getUserCommand = new GetCommand({
-        TableName: USERS_TABLE,
-        Key: { id: id },
-    });
-    const { Item } = await dynamo.send(getUserCommand);
-    return Item;
-}
 
 export const getAuthThenUser = async (event) => {
     const auth = await authCheck(event);
