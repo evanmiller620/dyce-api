@@ -60,11 +60,11 @@ export const WalletManager = ({ wallets, setWallets }) => {
             </tr>
           </thead>
           <tbody>
-            {wallets.map(({ name, address }) => (
+            {wallets.map(({ name, address, balance }) => (
               <tr key={address}>
                 <td>{name}</td>
                 <td>{address}</td>
-                <td>$0.00</td>
+                <td>{balance}</td>
                 <td>
                   <button id="trash" onClick={() => deleteWallet(name)}>
                     <img src={Trash} alt="X" height="24" />

@@ -47,16 +47,18 @@ export const Login = () => {
   }
 
   return (
-    <div className='login-wrapper'>
-      <form onSubmit={handleSubmit}>
-        <h1>Sign In</h1>
-        <input type='email' placeholder='Email address' onChange={e => setUsername(e.target.value)} required />
-        <input type='password' placeholder='Password' onChange={e => setPassword(e.target.value)} className={error && error.toLowerCase().includes("password") ? 'error' : ''} required />
-        {error && <p className="error-message">{error}</p>}
-        {/* <a href=''>Forgot password?</a> */}
-        <button type="submit" disabled={loading}>Submit</button>
-        <p>Don't have an account?<a href='register'>Sign up</a></p>
-      </form>
+    <div className='center-container'>
+      <div className='login-wrapper'>
+        <form onSubmit={handleSubmit}>
+          <h1>Sign In</h1>
+          <input type='email' placeholder='Email address' onChange={e => setUsername(e.target.value)} required />
+          <input type='password' placeholder='Password' onChange={e => setPassword(e.target.value)} className={error && error.toLowerCase().includes("password") ? 'error' : ''} required />
+          {error && <p className="error-message">{error}</p>}
+          {/* <a href=''>Forgot password?</a> */}
+          <button type="submit" disabled={loading}>Submit</button>
+          <p>Don't have an account?<a href='register'>Sign up</a></p>
+        </form>
+      </div>
     </div>
   )
 }

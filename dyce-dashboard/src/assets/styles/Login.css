@@ -1,3 +1,8 @@
+.center-container {
+    display: flex;
+    justify-content: center;
+}
+
 .login-wrapper {
     width: 320px;
     padding: 20px;
@@ -42,22 +47,6 @@
     cursor: wait;
 }
 
-.login-wrapper .error-message {
-    color: red;
-    font-size: 14px;
-    align-self: flex-start;
-    margin: 5px;
-}
-
-.login-wrapper .error {
-    border-color: red;
-}
-
-.login-wrapper .error::placeholder {
-    color: red;
-    opacity: 0.7;
-}
-
 .login-wrapper a {
     font-size: 14px;
     color: #5681ae;
@@ -92,4 +81,73 @@
 .password-checklist .invalid {
   color: rgb(100, 100, 100);
 }
-  
+
+.verify-wrapper {
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    background: #ffffff;
+    text-align: center;
+}
+
+.verify-wrapper h1 {
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+.verify-wrapper input {
+    width: 90%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+    display: block;
+    margin: 10px auto;
+}
+
+.verify-wrapper button {
+    width: 90%;
+    background-color: #007bff;
+    color: white;
+    padding: 12px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background 0.3s;
+    margin: 10px auto;
+}
+
+.verify-wrapper form button[type="submit"] {
+    width: 100px;
+    margin-left: 15px;
+}
+
+.verify-wrapper p {
+    font-size: 14px;
+    margin: 5px;
+}
+
+.verify-wrapper #link {
+    background-color: transparent;
+    color: rgb(100, 100, 255);
+    margin: 0;
+    padding: 0;
+    margin-top: 10px;
+}
+
+.error-message {
+    color: red;
+    font-size: 14px;
+    align-self: flex-start;
+    margin: 5px;
+}
+
+.error {
+    border-color: red !important;
+}
+
+.error::placeholder {
+    color: red;
+    opacity: 0.7;
+}

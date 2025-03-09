@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import '@/assets/styles/Verify.css';
+import '@/assets/styles/Login.css';
 import { useAuth } from './AuthContext';
 import { useLocation } from 'react-router-dom';
 import { useAPIClient } from '../DyceApi';
@@ -18,24 +18,24 @@ export const Verify = () => {
 
   const handleVerify = async (e) => {
     e.preventDefault();
-    
+
     if (!email) {
       setError("Email information is missing. Please go back to registration.");
       return;
     }
-    
+
     if (!verificationCode.trim()) {
       setError("Please enter the verification code");
       return;
     }
-    
+
     setLoading(true);
     setError(null);
-    
+
     try {
-      const body = { 
+      const body = {
         email: email,
-        code: verificationCode 
+        code: verificationCode
       }
       const response = await api.verifyEmail(body);
       const data = await response.json();
@@ -60,10 +60,10 @@ export const Verify = () => {
       setError("Email information is missing. Please go back to registration.");
       return;
     }
-    
+
     setLoading(true);
     setError(null);
-    
+
     try {
       const response = await api.resendVerification({ email });
       const data = await response.json();
@@ -84,65 +84,37 @@ export const Verify = () => {
 
   if (!email) {
     return (
-      <div className="verify-wrapper">
-        <h1 className="error-message">Email information missing</h1>
-        <p>Please go back to registration</p>
-        <button 
-          className="verify-button"
-          onClick={() => navigate("/register")}
-        >
-          Go to Registration
-        </button>
+      <div className="center-container">
+        <div className="verify-wrapper">
+          <h1>Email information missing</h1>
+          <button id="link" onClick={() => navigate("/register")}>Back to registration</button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="verify-wrapper">
+    <div className="center-container">
       {success ? (
-        <div className="success-container">
+        <div className="verify-wrapper">
           <h1>Email Verified!</h1>
           <p>Your email has been successfully verified.</p>
           <p>Redirecting to login...</p>
         </div>
-      ) : error ? (
-        <div className="error-container">
-          <h1 className="error-message">{error}</h1>
-          <button 
-            className="verify-button"
-            onClick={() => setError(null)}
-          >
-            Try Again
-          </button>
-        </div>
       ) : (
-        <div className="verification-container">
+        <div className="verify-wrapper">
           <h1>Verify your email</h1>
-          <p>Verification code sent to {email}</p>
-          <form onSubmit={handleVerify} className="verification-form">
-            <input
-              type="text"
-              placeholder="Enter verification code"
-              value={verificationCode}
-              onChange={(e) => setVerificationCode(e.target.value)}
-              className="verification-input"
-            />
-            <button 
-              type="submit" 
-              className="verify-button"
-              disabled={loading}
-            >
-              {loading ? "Verifying..." : "Verify Email"}
-            </button>
+          <p>Code sent to {email}</p>
+          <form onSubmit={handleVerify}>
+            <div className='col'>
+              <input type='text' placeholder='Verification code' onChange={e => setVerificationCode(e.target.value)} className={error ? "error" : ""} required />
+              <button type="submit" disabled={loading}>Verify</button>
+            </div>
+            {error && <p className="error-message">{error}</p>}
           </form>
-          <button 
-            onClick={handleResend} 
-            className="resend-link"
-            disabled={loading}
-          >
+          <button id="link" onClick={handleResend} className="resend-link" disabled={loading}>
             Resend verification code
           </button>
-          <p>Already Verified? <a href='login'>Sign in</a></p>
         </div>
       )}
     </div>
