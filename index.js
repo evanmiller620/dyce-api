@@ -9,8 +9,6 @@ import awsServerlessExpress from "aws-serverless-express";
 import dotenv from "dotenv";
 dotenv.config();
 
-import { business_handler_local } from "./src/functions/business.js";
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -86,8 +84,6 @@ app.get("/", async (req, res) => {
   // res.status(response.statusCode).json(JSON.parse(response.body));
   res.status(200).json({ message: "Hello froom root!" });
 });
-
-app.get("/business", business_handler_local);
 
 let server;
 let handler;

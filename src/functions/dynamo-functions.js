@@ -1,5 +1,5 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, GetCommand, QueryCommand, UpdateCommand, DeleteCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, GetCommand, QueryCommand, DeleteCommand, PutCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -24,19 +24,15 @@ export const getUserById = async (id) => {
 }
 
 // Get user from table (or add if not in table)
-export const getOrAddUser = async (username, email) => {
-    const command = new GetCommand({
+export const createUser = async (username, email) => {
+    const command = new PutCommand({
         TableName: BUSINESS_USERS_TABLE,
-        Key: { id: username },
+        Item: { id: username, email: email, apiKeys: [], wallets: [] },
+        ConditionExpression: "attribute_not_exists(id)",
     });
-    const { Item } = await dynamo.send(command);
-    if (!Item) {
-        const putCommand = new PutCommand({
-            TableName: BUSINESS_USERS_TABLE,
-            Item: { id: decodedToken, email: email, apiKeys: [], wallets: [] },
-        });
-        await dynamo.send(putCommand);
-    }
+    try {
+        await dynamo.send(command);
+    } catch (error) {}
 }
 
 // ==============================
@@ -122,8 +118,11 @@ export const addNewWallet = async (userId, name, address, key) => {
     const command = new UpdateCommand({
         TableName: BUSINESS_USERS_TABLE,
         Key: { id: userId },
-        UpdateExpression: "SET wallets = list_append(wallets, :newWallet)",
-        ExpressionAttributeValues: { ":newWallet": [newWallet] },
+        UpdateExpression: "SET wallets = list_append(if_not_exists(wallets, :emptyList), :newWallet)",
+        ExpressionAttributeValues: {
+            ":newWallet": [newWallet],
+            ":emptyList": [],
+        },
     });
     await dynamo.send(command);
 }
@@ -138,3 +137,86 @@ export const updateWallets = async (userId, wallets) => {
     });
     await dynamo.send(command);
 }
+
+// ==============================
+// Client User Management
+// ==============================
+
+export const getOrAddClientUser = async (userId) => {
+    const command = new GetCommand({
+        TableName: CLIENT_USERS_TABLE,
+        Key: { id: userId },
+    });
+    const { Item } = await dynamo.send(command);
+    if (!Item) {
+        const command = new PutCommand({
+            TableName: CLIENT_USERS_TABLE,
+            Item: { id: userId, apiKeys: {} },
+        });
+        await dynamo.send(command);
+    }
+    return Item;
+}
+
+export const addClientKeyIfNotExists = async (userId, apiKey) => {
+    const command = new UpdateCommand({
+        TableName: CLIENT_USERS_TABLE,
+        Key: { id: userId },
+        UpdateExpression: "SET apiKeys.#apiKey = :empty",
+        ExpressionAttributeNames: {
+            "#apiKey": apiKey,
+        },
+        ExpressionAttributeValues: {
+            ":empty": {},
+        },
+        ConditionExpression: "attribute_not_exists(apiKeys.#apiKey)"
+    });
+    try {
+        await dynamo.send(command);
+    } catch (error) {}
+};
+
+export const setSpendingLimit = async (userId, apiKey, wallet, amount) => {
+    const command = new UpdateCommand ({
+        TableName: CLIENT_USERS_TABLE,
+        Key: { id: userId },
+        UpdateExpression: "SET apiKeys.#apiKey.#wallet = :amount",
+        ExpressionAttributeNames: {
+            "#apiKey": apiKey,
+            "#wallet": wallet
+        },
+        ExpressionAttributeValues: {
+            ":amount": amount,
+        },
+    });
+    await dynamo.send(command);
+};
+
+export const decreaseSpendingLimit = async (userId, apiKey, wallet, amount) => {
+    const command = new UpdateCommand ({
+        TableName: CLIENT_USERS_TABLE,
+        Key: { id: userId },
+        UpdateExpression: "SET apiKeys.#apiKey.#wallet = apiKeys.#apiKey.#wallet - :amount",
+        ExpressionAttributeNames: {
+            "#apiKey": apiKey,
+            "#wallet": wallet
+        },
+        ExpressionAttributeValues: {
+            ":amount": amount,
+        },
+    });
+    await dynamo.send(command);
+};
+
+export const getClientKey = async (userId, apiKey) => {
+    const command = new GetCommand({
+        TableName: CLIENT_USERS_TABLE,
+        Key: { id: userId },
+        ProjectionExpression: "apiKeys.#apiKey",
+        ExpressionAttributeNames: {
+            "#apiKey": apiKey,
+        }
+    });
+    const { Item } = await dynamo.send(command);
+    return Item?.apiKeys?.[apiKey] || null;
+};

@@ -1,4 +1,4 @@
-import { getOrAddUser, getUserById } from "./dynamo-functions.js"
+import { createUser, getUserById } from "./dynamo-functions.js"
 import {
     CognitoIdentityProviderClient,
     InitiateAuthCommand,
@@ -61,7 +61,7 @@ export const login = async (event) => {
         var decodedToken = jwt.decode(idToken); // get unchanging user id from token
         decodedToken = decodedToken["cognito:username"];
 
-        await getOrAddUser(decodedToken, email);
+        await createUser(decodedToken, email);
         return {
             statusCode: 200,
             body: JSON.stringify({
