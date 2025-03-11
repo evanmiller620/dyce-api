@@ -1,13 +1,59 @@
+nav {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
+    background-color: white;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+nav * {
+    margin: 0 15px;
+}
+
+nav a {
+    color: black;
+}
+
+#profile {
+    display: inline-flex;
+    width: 40px;
+    height: 40px;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background-color: transparent;
+    outline: none;
+}
+
+#menu {
+    background-color: #007bff;
+    color: white;
+    border-radius: 5px;
+    position: fixed;
+    top: 45px;
+}
+
+button {
+    background-color: #00a2ff;
+    color: white;
+    border-radius: 5px;
+    padding: 10px;
+    border: none;
+    margin: 5px;
+}
+
 .title {
     text-align: center;
-    font-size: 42px;
-    margin: 0;
+    font-size: 32px;
+    margin-top: 10px;
+    margin: 0 auto;
 }
 
 .managers-wrapper {
     display: flex;
     justify-content: start;
-    margin: 0 10px;
+    margin: 10px;
 }
 
 .manager {
@@ -18,20 +64,31 @@
     display: flex;
     flex-direction: column;
     margin: 10px;
+    height: calc(100vh - 130px);
 }
 
 .keys-wrapper {
     width: 500px;
-    height: 575px;
 }
 
 .wallets-wrapper {
     width: 400px;
-    height: 575px;
 }
 
-.fake-wrapper {
+.usage-wrapper {
     flex: 1;
+}
+
+.usage-wrapper img {
+    margin: 30px;
+}
+
+.tester-wrapper {
+    flex: 1;
+}
+
+.tester-wrapper input, button {
+    font-size: 16px;
 }
 
 .keys-wrapper * {
@@ -51,27 +108,30 @@
 .header-container h1 {
     margin-top: 0;
     margin-bottom: 0;
+    /* font-size: 32px; */
 }
 
-.header-container button {
-    background-color: #00a2ff;
-    color: white;
-    border-radius: 5px;
-    height: min-content;
-    padding: 10px;
-    border: none;
-    align-self: center;
+.table-container {
+    overflow-y: auto;
+    margin: 0;
+    border-radius: 10px;
+    background-color: #007bff;
+}
+
+.table-container::-webkit-scrollbar {
+    display: none;
+}
+
+.table-container * {
+    margin: 0;
 }
 
 table {
     background-color: #007bff;
-    padding: 10px;
-    border-radius: 10px;
     color: white;
     table-layout: fixed;
     width: 100%;
     border-spacing: 0px;
-    overflow-y: auto;
 }
 
 td, th {
@@ -79,7 +139,13 @@ td, th {
     text-overflow: ellipsis;
     overflow: hidden;
     white-space: nowrap;
-    padding: 5px;
+    padding: 8px;
+}
+
+th {
+    position: sticky;
+    top: 0;
+    background-color: #007bff;
 }
 
 tbody tr:nth-child(odd) {
@@ -99,16 +165,16 @@ option {
     background-color: #2e93ff;
 }
 
-#trash {
+.trash, .refresh {
     margin-left: auto;
     display: inline-flex;
     width: 30px;
     height: 30px;
     align-items: center;
     justify-content: center;
-    border-radius: 5px;
     border: none;
     background-color: transparent;
+    outline: none;
 }
 
 .popup-container {
@@ -122,6 +188,7 @@ option {
     justify-content: center;
     background-color: rgba(0, 0, 0, 0.5);
     margin: 0;
+    z-index: 1;
 }
 
 .popup {
@@ -132,11 +199,15 @@ option {
     padding: 10px;
 }
 
-.popup input {
+.manager input {
     padding: 12px;
-    padding-right: 50px;
     border: 1px solid #ccc;
     border-radius: 5px;
+    margin: 5px;
+}
+
+.popup input.copy {
+    padding-right: 50px;
 }
 
 .popup * {
@@ -150,18 +221,19 @@ option {
     flex-grow: 1;
 }
 
-.popup #copy {
+.popup button.copy {
     width: 40px;
     height: 40px;
     margin-left: -50px;
     background-color: transparent;
+    align-self: center;
 }
 
-.popup #copy:hover {
+.popup button.copy:hover {
     background-color: rgba(0, 0, 0, 0.2);
 }
 
-.popup #copy:active {
+.popup button.copy:active {
     background-color: rgba(0, 0, 0, 0.1);
 }
 

@@ -1,5 +1,5 @@
 import { getAuthThenUser } from "./dashboard-login-functions.js";
-import { getWalletBalance } from "./payments-functions.js";
+import { getWalletBalance, verifyWallet } from "./payments-functions.js";
 import { getKeysByUser, addNewWallet, updateWallets, setWalletName } from "./dynamo-functions.js"
 import dotenv from "dotenv";
 dotenv.config();
@@ -12,6 +12,10 @@ export const addWallet = async (event) => {
     const { name, address, key } = JSON.parse(event.body);
     if (!name || !address || !key) return { statusCode: 400, body: JSON.stringify({ message: "Wallet name, address, and private key are required" }) };
     if (user.wallets?.some(wallet => wallet.name === name)) return { statusCode: 400, body: JSON.stringify({ message: "Wallet name already in use" }) };
+
+    const valid = await verifyWallet(address, key);
+    if (!valid)
+        return { statusCode: 400, body: JSON.stringify({ message: "Invalid wallet credentials" }) };
 
     await addNewWallet(user.id, name, address, key);
     return { statusCode: 200, body: JSON.stringify({ message: "Successfully added wallet!" }) };

@@ -1,6 +1,6 @@
 import { ethers } from 'ethers'
 
-import { getKey, getUserById, getOrAddClientUser, setSpendingLimit, decreaseSpendingLimit, addClientKeyIfNotExists, getClientKey } from './dynamo-functions.js';
+import { getKey, getUserById, getOrAddClientUser, setSpendingLimit, decreaseSpendingLimit, addClientKeyIfNotExists, getClientWallets } from './dynamo-functions.js';
 
 // ==============================
 // Payment Endpoint Functions
@@ -56,7 +56,9 @@ export const requestPayment = async (event) => {
     const businessWallet = businessUser.wallets.find(wallet => wallet.name == apiKey.wallet)
     if (!businessWallet) return { statusCode: 401, body: JSON.stringify({ message: "No wallet set for API key" }) };
 
-    const wallets = await getClientKey(userId, apiKey.key);
+    const wallets = await getClientWallets(userId, apiKey.key);
+    if (!wallets)
+        return { statusCode: 400, body: JSON.stringify({ message: "No spending approved" }) };
     const total = Object.values(wallets).reduce((sum, value) => sum + value, 0);
     if (amount > total)
         return { statusCode: 400, body: JSON.stringify({ message: "Insufficient spending limit" }) };
@@ -94,8 +96,22 @@ const ERC20_ABI = [
 export const getWalletBalance = async (address) => {
     const contract = new ethers.Contract(CONTRACT_ADDRESS, ERC20_ABI, provider);
     const decimals = await contract.decimals();
-    const balance = await contract.balanceOf(address);
-    return ethers.formatUnits(balance, decimals);
+    try {
+        const balance = await contract.balanceOf(address);
+        return ethers.formatUnits(balance, decimals);
+    } catch {
+        return "???";
+    }
+}
+
+export const verifyWallet = async (address, privateKey) => {
+    try {
+        const wallet = new ethers.Wallet(privateKey);
+        return wallet.address == address;
+    } catch (error) {
+        console.log(error);
+        return false;
+    }
 }
 
 const transfer = async (srcAddress, destAddress, privateKey, amount) => {

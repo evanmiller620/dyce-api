@@ -7,6 +7,7 @@ import { useAPIClient } from '../DyceApi';
 export const KeyManager = ({ wallets }) => {
   const [apiKeys, setApiKeys] = useState([]);
   const [showPopup, setShowPopup] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const api = useAPIClient();
 
   async function getKeys() {
@@ -27,10 +28,12 @@ export const KeyManager = ({ wallets }) => {
   }, [showPopup, wallets]);
 
   const deleteKey = async (name) => {
+    setDeleting(true);
     const response = await api.deleteApiKey(name);
     const data = await response.json();
     if (!response.ok) throw new Error("Failed to delete API key");
     setApiKeys(apiKeys.filter(key => key.name !== name));
+    setDeleting(false);
   }
 
   const updateWallet = async (keyName, walletName) => {
@@ -49,18 +52,20 @@ export const KeyManager = ({ wallets }) => {
       {apiKeys.length === 0 ? (
         <h3>No API keys created yet.</h3>
       ) : (
+      <div className='table-container'>
         <table>
           <colgroup>
             <col style={{ width: "auto" }} />
             <col style={{ width: "110px" }} />
             <col style={{ width: "150px" }} />
-            <col style={{ width: "40px" }} />
+            <col style={{ width: "46px" }} />
           </colgroup>
           <thead>
             <tr>
               <th>Name</th>
               <th>Address</th>
               <th>Wallet</th>
+              <th></th>
             </tr>
           </thead>
           <tbody>
@@ -77,7 +82,7 @@ export const KeyManager = ({ wallets }) => {
                   </select>
                 </td>
                 <td>
-                  <button id="trash" onClick={() => deleteKey(name)}>
+                  <button className="trash" onClick={() => deleteKey(name)} disabled={deleting}>
                     <img src={Trash} alt="X" height="24" />
                   </button>
                 </td>
@@ -85,6 +90,7 @@ export const KeyManager = ({ wallets }) => {
             ))}
           </tbody>
         </table>
+      </div>
       )}
     </div>
   )

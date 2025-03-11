@@ -23,11 +23,25 @@ export const getWalletAddress = async () => {
     return address;
 }
 
+export const getWalletBalance = async (address) => {
+    const contract = new ethers.Contract(CONTRACT_ADDRESS, ERC20_ABI, provider);
+    const decimals = await contract.decimals();
+    try {
+        const balance = await contract.balanceOf(address);
+        return ethers.formatUnits(balance, decimals);
+    } catch {
+        return "???";
+    }
+}
+
 export const approveLimit = async (address, amount) => {
     if (!provider) throw new Error("Must connect to wallet first!");
     const signer = await provider.getSigner();
     const contract = new ethers.Contract(CONTRACT_ADDRESS, ERC20_ABI, signer);
+    const balance = await contract.balanceOf(address);
     const decimals = await contract.decimals();
+    if (ethers.formatUnits(balance, decimals) < amount)
+        throw new Error("Approve amount is greater than wallet balance!");
     const approveAmount = ethers.parseUnits(amount.toString(), decimals);
     const tx = await contract.approve(address, approveAmount);
     await tx.wait();
