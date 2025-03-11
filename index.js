@@ -15,8 +15,16 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-if (!process.env.AWS_EXECUTION_ENV)
-  import("cors").then(({ default: cors }) => { app.use(cors({ origin: 'http://localhost:5173', credentials: true })); });
+if (!process.env.AWS_EXECUTION_ENV) {
+  import("cors").then(({ default: cors }) => {
+    app.use(cors({
+      origin: ['http://localhost:5173', 'http://localhost:3000'],
+      credentials: true
+    }));
+  });
+}
+
+
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
