@@ -7,23 +7,28 @@ export const Tester = () => {
   const [amount, setAmount] = useState(0);
   const [userId, setUserId] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const dyce = useMemo(() => new Dyce(apiKey), [apiKey]);
 
   const onApprove = async () => {
+    setError("");
     setLoading(true);
-    await dyce.approveSpending(userId, amount);
+    const success = await dyce.approveSpending(userId, amount);
+    if (!success) setError("Failed to approve spending!");
     setLoading(false);
   }
 
   const onRequest = async () => {
+    setError("");
     setLoading(true);
-    await dyce.requestPayment(userId, amount);
+    const success = await dyce.requestPayment(userId, amount);
+    if (!success) setError("Failed to execute payment!");
     setLoading(false);
   }
 
   return (
-    <div className='manager fake-wrapper'>
+    <div className='manager tester-wrapper'>
       <div className='header-container'>
         <h1>API Test</h1>
       </div>
@@ -35,6 +40,7 @@ export const Tester = () => {
         <input type='number' placeholder='Amount' onChange={e => setAmount(e.target.value)}></input>
         <button onClick={onApprove} disabled={loading}>Approve Spending</button>
         <button onClick={onRequest} disabled={loading}>Request Payment</button>
+        {error && <p className="error-message">{error}</p>}
       </div>
     </div>
   )

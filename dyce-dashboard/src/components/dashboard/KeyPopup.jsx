@@ -47,8 +47,8 @@ export const KeyPopup = ({ onClose }) => {
         ) : (
           <>
             <div className="col">
-              <input type="text" value={apiKey} readOnly />
-              <button id="copy" onClick={() => navigator.clipboard.writeText(apiKey)}>
+              <input className="copy" type="text" value={apiKey} readOnly />
+              <button className="copy" onClick={() => navigator.clipboard.writeText(apiKey)}>
                 <img src={Copy} alt="X" height="24" />
               </button>
               <button onClick={handleClose}>Done</button>
