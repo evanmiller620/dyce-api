@@ -8,7 +8,7 @@ class Dyce {
     try {
       connectWallet();
       this.connected = true;
-    } catch (error) {
+    } catch {
       this.connected = false;
     }
   }
@@ -43,12 +43,15 @@ class Dyce {
   }
 
   async approveSpending(userId, amount) {
-    if (!this.connected) throw new Error("Failed to connect to MetaMask!");
+    if (!this.connected) {
+      console.error("Failed to connect to MetaMask!");
+      return false;
+    }
     const businessWallet = await this.getWalletAddress();
     const clientWallet = await getWalletAddress();
     try {
       await approveLimit(businessWallet, parseFloat(amount));
-    } catch (Error) {
+    } catch {
       console.error("Failed to approve spending!");
       return false;
     }
@@ -61,7 +64,7 @@ class Dyce {
         console.error(data.message || "Failed to set new spending limit in database!");
         return false;
       }
-    } catch (Error) {
+    } catch {
       console.error("Failed to set new spending limit in database!");
       return false;
     }

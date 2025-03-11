@@ -208,7 +208,7 @@ export const decreaseSpendingLimit = async (userId, apiKey, wallet, amount) => {
     await dynamo.send(command);
 };
 
-export const getClientKey = async (userId, apiKey) => {
+export const getClientWallets = async (userId, apiKey) => {
     const command = new GetCommand({
         TableName: CLIENT_USERS_TABLE,
         Key: { id: userId },
