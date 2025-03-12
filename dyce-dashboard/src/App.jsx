@@ -6,7 +6,7 @@ import { Verify } from './components/auth/Verify.jsx'
 import { AuthProvider } from './components/auth/AuthContext.jsx'
 import { ProtectedRoute } from './components/auth/ProtectedRoute.jsx'
 import { APIClientProvider } from './components/DyceApi.jsx'
-import BackgroundCanvas from './components/background.jsx'
+import BackgroundCanvas from './components/Background.jsx'
 
 function App() {
 
