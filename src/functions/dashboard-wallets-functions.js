@@ -12,6 +12,7 @@ export const addWallet = async (event) => {
     const { name, address, key } = JSON.parse(event.body);
     if (!name || !address || !key) return { statusCode: 400, body: JSON.stringify({ message: "Wallet name, address, and private key are required" }) };
     if (user.wallets?.some(wallet => wallet.name === name)) return { statusCode: 400, body: JSON.stringify({ message: "Wallet name already in use" }) };
+    if (user.wallets?.some(wallet => wallet.address === address)) return { statusCode: 400, body: JSON.stringify({ message: "Wallet already added" }) };
 
     const valid = await verifyWallet(address, key);
     if (!valid)

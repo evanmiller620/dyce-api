@@ -167,7 +167,7 @@ export const addClientKeyIfNotExists = async (userId, apiKey) => {
             "#apiKey": apiKey,
         },
         ExpressionAttributeValues: {
-            ":empty": {},
+            ":empty": [],
         },
         ConditionExpression: "attribute_not_exists(apiKeys.#apiKey)"
     });
@@ -176,36 +176,26 @@ export const addClientKeyIfNotExists = async (userId, apiKey) => {
     } catch (error) {}
 };
 
-export const setSpendingLimit = async (userId, apiKey, wallet, amount) => {
+export const addClientWallet = async (userId, apiKey, wallet) => {
     const command = new UpdateCommand ({
         TableName: CLIENT_USERS_TABLE,
         Key: { id: userId },
-        UpdateExpression: "SET apiKeys.#apiKey.#wallet = :amount",
+        UpdateExpression: "SET apiKeys.#apiKey = list_append(apiKeys.#apiKey, :newWallet)",
+        ConditionExpression: "NOT contains(apiKeys.#apiKey, :wallet)",
         ExpressionAttributeNames: {
             "#apiKey": apiKey,
-            "#wallet": wallet
         },
         ExpressionAttributeValues: {
-            ":amount": amount,
+            ":newWallet": [wallet],
+            ":wallet": wallet,
         },
     });
-    await dynamo.send(command);
-};
-
-export const decreaseSpendingLimit = async (userId, apiKey, wallet, amount) => {
-    const command = new UpdateCommand ({
-        TableName: CLIENT_USERS_TABLE,
-        Key: { id: userId },
-        UpdateExpression: "SET apiKeys.#apiKey.#wallet = apiKeys.#apiKey.#wallet - :amount",
-        ExpressionAttributeNames: {
-            "#apiKey": apiKey,
-            "#wallet": wallet
-        },
-        ExpressionAttributeValues: {
-            ":amount": amount,
-        },
-    });
-    await dynamo.send(command);
+    try {
+        await dynamo.send(command);
+    } catch (err) {
+        if (err.name !== "ConditionalCheckFailedException")
+            throw err;
+    }
 };
 
 export const getClientWallets = async (userId, apiKey) => {

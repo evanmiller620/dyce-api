@@ -1,6 +1,7 @@
 import { ethers } from 'ethers'
 
-import { getKey, getUserById, getOrAddClientUser, setSpendingLimit, decreaseSpendingLimit, addClientKeyIfNotExists, getClientWallets } from './dynamo-functions.js';
+import { getKey, getUserById, getOrAddClientUser, addClientWallet, addClientKeyIfNotExists, getClientWallets } from './dynamo-functions.js';
+import { EtherscanProvider } from 'ethers';
 
 // ==============================
 // Payment Endpoint Functions
@@ -35,7 +36,7 @@ export const approveSpending = async (event) => {
 
     const user = await getOrAddClientUser(userId);
     if (!user?.apiKeys?.[apiKey.key]?.wallets?.[wallet]) await addClientKeyIfNotExists(userId, apiKey.key);
-    setSpendingLimit(userId, apiKey.key, wallet, amount);
+    await addClientWallet(userId, apiKey.key, wallet);
     return { statusCode: 200, body: JSON.stringify({ message: "Spending approved successfully" }) };
 }
 
@@ -59,17 +60,24 @@ export const requestPayment = async (event) => {
     const wallets = await getClientWallets(userId, apiKey.key);
     if (!wallets)
         return { statusCode: 400, body: JSON.stringify({ message: "No spending approved" }) };
-    const total = Object.values(wallets).reduce((sum, value) => sum + value, 0);
+
+    var total = 0;
+    
+    var walletAllowances = {}
+    for (const wallet of wallets) {
+        const allowance = await getWalletAllowance(wallet, businessWallet.address);
+        if (allowance == 0) continue;
+        walletAllowances[wallet] = allowance;
+        total += allowance;
+    }
     if (amount > total)
         return { statusCode: 400, body: JSON.stringify({ message: "Insufficient spending limit" }) };
-    // Should probably check the actual spending limits rather than relying on the database entries
 
     var remainingTransferAmount = amount;
-    for (const [wallet, limit] of Object.entries(wallets)) {
+    for (const wallet in walletAllowances) {
         if (!remainingTransferAmount) return;
-        const transferAmount = Math.min(limit, remainingTransferAmount);
+        const transferAmount = Math.min(walletAllowances[wallet], remainingTransferAmount);
         const txHash = await transfer(wallet, businessWallet.address, businessWallet.key, transferAmount);
-        decreaseSpendingLimit(userId, apiKey.key, wallet, transferAmount);
         remainingTransferAmount -= transferAmount;
         console.log(txHash);
     }
@@ -83,14 +91,16 @@ export const requestPayment = async (event) => {
 // ==============================
 
 // const provider = new ethers.JsonRpcProvider("https://mainnet.infura.io/v3/" + process.env.INFURA_API_KEY);
-const provider = new ethers.JsonRpcProvider("https://rpc-sepolia.rockx.com"); // Sepolia Testnet provider
+// const provider = new ethers.JsonRpcProvider("https://rpc-sepolia.rockx.com"); // Sepolia Testnet provider
+const provider = new EtherscanProvider("sepolia", "RAHVBWPIXSYP96K9KKJY8PBAGGPI7XDDIQ");
 // const CONTRACT_ADDRESS = "0xdAC17F958D2ee523a2206206994597C13D831ec7"; // Ethereum Mainnet USDT
 const CONTRACT_ADDRESS = "0x779877A7B0D9E8603169DdbD7836e478b4624789"; // Sepolia Testnet LINK
 const ERC20_ABI = [
   "function decimals() view returns (uint8)",
   "function balanceOf(address owner) view returns (uint256)",
   "function transfer(address to, uint256 amount) returns (bool)",
-  "function transferFrom(address from, address to, uint256 amount) returns (bool)"
+  "function transferFrom(address from, address to, uint256 amount) returns (bool)",
+  "function allowance(address owner, address spender) view returns (uint256)"
 ]
 
 export const getWalletBalance = async (address) => {
@@ -101,6 +111,18 @@ export const getWalletBalance = async (address) => {
         return ethers.formatUnits(balance, decimals);
     } catch {
         return "???";
+    }
+}
+
+export const getWalletAllowance = async (owner, spender) => {
+    const contract = new ethers.Contract(CONTRACT_ADDRESS, ERC20_ABI, provider);
+    const decimals = await contract.decimals();
+    try {
+        const balance = await contract.allowance(owner, spender);
+        return Number(ethers.formatUnits(balance, decimals));
+    } catch (err) {
+        console.log(err);
+        return 0;
     }
 }
 
