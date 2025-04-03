@@ -1,5 +1,5 @@
-const apiKey = "W0BCiZqBY62oB1boLCApVMWsItPPR42FUab32B90"
-import.meta.env.VITE_API_KEY;
+const apiKey = import.meta.env.VITE_API_KEY;
+
 
 class APIClient {
   constructor(token) {
