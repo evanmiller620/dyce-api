@@ -1,7 +1,7 @@
 // import express from "express";
 import crypto from "crypto";
 import { getAuthThenUser } from "./dashboard-login-functions.js";
-import { getKey, createKey, deleteKey, getKeysByUser, setUseCount, setWalletName } from "./dynamo-functions.js"
+import { getKey, createKey, deleteKey, getKeysByUser, setWalletName } from "./dynamo-functions.js"
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -29,7 +29,7 @@ export const getApiKeys = async (event) => {
     if (!user) return { statusCode: 401, body: JSON.stringify({ message: "Unauthorized" }) };
 
     const apiKeys = await getKeysByUser(user.id);
-    const formattedKeys = apiKeys?.map(({ key, name, wallet, useCount }) => ({ //userId,
+    const formattedKeys = apiKeys?.map(({ key, name, wallet, useCount }) => ({
         name,
         key: `${key.slice(0, 4)}...${key.slice(-4)}`,
         wallet: wallet,
@@ -52,19 +52,6 @@ export const deleteApiKey = async (event) => {
     const apiKey = userKeys.find(apiKey => apiKey.name === name);
     await deleteKey(apiKey.key);
     return { statusCode: 200, body: JSON.stringify({ message: "API key deleted successfully" }) };
-};
-
-
-// Use API key route (example)
-export const useApiKey = async (event) => {
-    console.log("Received use key request");
-    const { key } = JSON.parse(event.body);
-    if (!key) return { statusCode: 401, body: JSON.stringify({ message: "API key required" }) };
-    const apiKey = await getKey(key);
-    if (!apiKey) return { statusCode: 401, body: JSON.stringify({ message: "Invalid API key" }) };
-
-    await setUseCount(apiKey.key, apiKey.useCount + 1);
-    return { statusCode: 200, body: JSON.stringify({ message: "API Key used successfully", useCount: apiKey.useCount }) };
 };
 
 // Set API key wallet route

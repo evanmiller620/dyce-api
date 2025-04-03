@@ -84,6 +84,17 @@ export const setUseCount = async (key, count) => {
     await dynamo.send(command);
 }
 
+// Add transfer amount to API key history
+// export const setTxAmount = async (key, amount) => {
+//     const command = new UpdateCommand({
+//         TableName: KEYS_TABLE,
+//         Key: { key: key },
+//         UpdateExpression: "SET txAmount = :txAmount",
+//         ExpressionAttributeValues: { ":txAmount": amount },
+//     });
+//     await dynamo.send(command);
+// }
+
 // Set the wallet name assigned to an API key
 export const setWalletName = async (key, walletName) => {
     const command = new UpdateCommand({

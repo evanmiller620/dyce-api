@@ -1,5 +1,5 @@
 import express from "express";
-import { generateApiKey, getApiKeys, deleteApiKey, useApiKey, setWallet, getWallet } from "../functions/dashboard-keys-functions.js";
+import { generateApiKey, getApiKeys, deleteApiKey, setWallet, getWallet } from "../functions/dashboard-keys-functions.js";
 
 const router = express.Router();
 
@@ -16,11 +16,6 @@ router.get("/get-api-keys", async (req, res) => {
 
 router.post("/delete-api-key", async (req, res) => {
     const response = await deleteApiKey({ body: JSON.stringify(req.body), headers: req.headers });
-    res.status(response.statusCode).json(JSON.parse(response.body));
-});
-
-router.post("/use-api-key", async (req, res) => {
-    const response = await useApiKey({ body: JSON.stringify(req.body), headers: req.headers });
     res.status(response.statusCode).json(JSON.parse(response.body));
 });
 

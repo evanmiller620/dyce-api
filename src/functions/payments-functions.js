@@ -1,6 +1,6 @@
 import { ethers } from 'ethers'
 
-import { getKey, getUserById, getOrAddClientUser, addClientWallet, addClientKeyIfNotExists, getClientWallets } from './dynamo-functions.js';
+import { getKey, getUserById, getOrAddClientUser, addClientWallet, addClientKeyIfNotExists, getClientWallets, setUseCount } from './dynamo-functions.js';
 import { EtherscanProvider } from 'ethers';
 
 // ==============================
@@ -37,10 +37,10 @@ export const approveSpending = async (event) => {
     const user = await getOrAddClientUser(userId);
     if (!user?.apiKeys?.[apiKey.key]?.wallets?.[wallet]) await addClientKeyIfNotExists(userId, apiKey.key);
     await addClientWallet(userId, apiKey.key, wallet);
+    await setUseCount(apiKey.key, apiKey.useCount + 1);
     return { statusCode: 200, body: JSON.stringify({ message: "Spending approved successfully" }) };
 }
 
-// WARNING: Literally zero error catching, will break if you do anything sus
 export const requestPayment = async (event) => {
     console.log("Received request payment request");
     const key = event.headers["x-api-key"];
@@ -81,9 +81,10 @@ export const requestPayment = async (event) => {
         remainingTransferAmount -= transferAmount;
         console.log(txHash);
     }
-
+    
+    await setUseCount(apiKey.key, apiKey.useCount + 1);
+    // await setTxAmount(apiKey.txAmount, apiKey.txAmount + amount);
     return { statusCode: 200, body: JSON.stringify({ message: "Processed payment successfully" }) };
-    // To do: make this return the transaction hashes
 };
 
 // ==============================
