@@ -32,7 +32,7 @@ export const createUser = async (username, email) => {
     });
     try {
         await dynamo.send(command);
-    } catch (error) {}
+    } catch (error) { console.log(error); }
 }
 
 // ==============================
@@ -184,11 +184,11 @@ export const addClientKeyIfNotExists = async (userId, apiKey) => {
     });
     try {
         await dynamo.send(command);
-    } catch (error) {}
+    } catch (error) { console.log(error); }
 };
 
 export const addClientWallet = async (userId, apiKey, wallet) => {
-    const command = new UpdateCommand ({
+    const command = new UpdateCommand({
         TableName: CLIENT_USERS_TABLE,
         Key: { id: userId },
         UpdateExpression: "SET apiKeys.#apiKey = list_append(apiKeys.#apiKey, :newWallet)",

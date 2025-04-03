@@ -10,59 +10,137 @@ import { EtherscanProvider } from 'ethers';
 export const getWalletAddress = async (event) => {
     console.log("Received get wallet address request");
     const key = event.headers["x-api-key"];
-    if (!key) return { statusCode: 401, body: JSON.stringify({ message: "API key required" }) };
+    if (!key) return {
+        statusCode: 401, headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type",
+        }, body: JSON.stringify({ message: "API key required" })
+    };
 
     const apiKey = await getKey(key);
-    if (!apiKey) return { statusCode: 401, body: JSON.stringify({ message: "Invalid API key" }) };
+    if (!apiKey) return {
+        statusCode: 401, headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type",
+        }, body: JSON.stringify({ message: "Invalid API key" })
+    };
 
     const user = await getUserById(apiKey.userId);
     const wallet = user.wallets.find(wallet => wallet.name == apiKey.wallet)
-    if (!wallet) return { statusCode: 401, body: JSON.stringify({ message: "No wallet set for API key" }) };
+    if (!wallet) return {
+        statusCode: 401, headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type",
+        }, body: JSON.stringify({ message: "No wallet set for API key" })
+    };
 
-    return { statusCode: 200, body: JSON.stringify({ address: wallet.address }) };
+    return {
+        statusCode: 200, headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type",
+        }, body: JSON.stringify({ address: wallet.address })
+    };
 };
 
 export const approveSpending = async (event) => {
     console.log("Received approve spending request");
     const key = event.headers["x-api-key"];
-    if (!key) return { statusCode: 401, body: JSON.stringify({ message: "API key required" }) };
+    if (!key) return {
+        statusCode: 401, headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type",
+        }, body: JSON.stringify({ message: "API key required" })
+    };
 
     const { userId, wallet, amount } = JSON.parse(event.body);
     if (!userId || !wallet || !amount)
-      return { statusCode: 401, body: JSON.stringify({ message: "User ID, wallet address, and approve amount required" }) };
+        return {
+            statusCode: 401, headers: {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+                "Access-Control-Allow-Headers": "Content-Type",
+            }, body: JSON.stringify({ message: "User ID, wallet address, and approve amount required" })
+        };
 
     const apiKey = await getKey(key);
-    if (!apiKey) return { statusCode: 401, body: JSON.stringify({ message: "Invalid API key" }) };
+    if (!apiKey) return {
+        statusCode: 401, headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type",
+        }, body: JSON.stringify({ message: "Invalid API key" })
+    };
 
     const user = await getOrAddClientUser(userId);
     if (!user?.apiKeys?.[apiKey.key]?.wallets?.[wallet]) await addClientKeyIfNotExists(userId, apiKey.key);
     await addClientWallet(userId, apiKey.key, wallet);
     await setUseCount(apiKey.key, apiKey.useCount + 1);
-    return { statusCode: 200, body: JSON.stringify({ message: "Spending approved successfully" }) };
+    return {
+        statusCode: 200, headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type",
+        }, body: JSON.stringify({ message: "Spending approved successfully" })
+    };
 }
 
 export const requestPayment = async (event) => {
     console.log("Received request payment request");
     const key = event.headers["x-api-key"];
-    if (!key) return { statusCode: 401, body: JSON.stringify({ message: "API key required" }) };
+    if (!key) return {
+        statusCode: 401, headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type",
+        }, body: JSON.stringify({ message: "API key required" })
+    };
 
     const { userId, amount } = JSON.parse(event.body);
     if (!userId || !amount)
-        return { statusCode: 401, body: JSON.stringify({ message: "User ID and payment amount required" }) };
+        return {
+            statusCode: 401, headers: {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+                "Access-Control-Allow-Headers": "Content-Type",
+            }, body: JSON.stringify({ message: "User ID and payment amount required" })
+        };
 
     const apiKey = await getKey(key);
-    if (!apiKey) return { statusCode: 401, body: JSON.stringify({ message: "Invalid API key" }) };
+    if (!apiKey) return {
+        statusCode: 401, headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type",
+        }, body: JSON.stringify({ message: "Invalid API key" })
+    };
 
     const businessUser = await getUserById(apiKey.userId);
     const businessWallet = businessUser.wallets.find(wallet => wallet.name == apiKey.wallet)
-    if (!businessWallet) return { statusCode: 401, body: JSON.stringify({ message: "No wallet set for API key" }) };
+    if (!businessWallet) return {
+        statusCode: 401, headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type",
+        }, body: JSON.stringify({ message: "No wallet set for API key" })
+    };
 
     const wallets = await getClientWallets(userId, apiKey.key);
     if (!wallets)
-        return { statusCode: 400, body: JSON.stringify({ message: "No spending approved" }) };
+        return {
+            statusCode: 400, headers: {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+                "Access-Control-Allow-Headers": "Content-Type",
+            }, body: JSON.stringify({ message: "No spending approved" })
+        };
 
     var total = 0;
-    
+
     var walletAllowances = {}
     for (const wallet of wallets) {
         const allowance = await getWalletAllowance(wallet, businessWallet.address);
@@ -71,20 +149,38 @@ export const requestPayment = async (event) => {
         total += allowance;
     }
     if (amount > total)
-        return { statusCode: 400, body: JSON.stringify({ message: "Insufficient spending limit" }) };
+        return {
+            statusCode: 400, headers: {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+                "Access-Control-Allow-Headers": "Content-Type",
+            }, body: JSON.stringify({ message: "Insufficient spending limit" })
+        };
 
     var remainingTransferAmount = amount;
     for (const wallet in walletAllowances) {
-        if (!remainingTransferAmount) return;
+        if (!remainingTransferAmount) return {
+            statusCode: 400, headers: {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+                "Access-Control-Allow-Headers": "Content-Type",
+            }, body: JSON.stringify({ message: "Out of funds" })
+        };;
         const transferAmount = Math.min(walletAllowances[wallet], remainingTransferAmount);
         const txHash = await transfer(wallet, businessWallet.address, businessWallet.key, transferAmount);
         remainingTransferAmount -= transferAmount;
         console.log(txHash);
     }
-    
+
     await setUseCount(apiKey.key, apiKey.useCount + 1);
     // await setTxAmount(apiKey.txAmount, apiKey.txAmount + amount);
-    return { statusCode: 200, body: JSON.stringify({ message: "Processed payment successfully" }) };
+    return {
+        statusCode: 200, headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type",
+        }, body: JSON.stringify({ message: "Processed payment successfully" })
+    };
 };
 
 // ==============================
@@ -97,11 +193,11 @@ const provider = new EtherscanProvider("sepolia", "RAHVBWPIXSYP96K9KKJY8PBAGGPI7
 // const CONTRACT_ADDRESS = "0xdAC17F958D2ee523a2206206994597C13D831ec7"; // Ethereum Mainnet USDT
 const CONTRACT_ADDRESS = "0x779877A7B0D9E8603169DdbD7836e478b4624789"; // Sepolia Testnet LINK
 const ERC20_ABI = [
-  "function decimals() view returns (uint8)",
-  "function balanceOf(address owner) view returns (uint256)",
-  "function transfer(address to, uint256 amount) returns (bool)",
-  "function transferFrom(address from, address to, uint256 amount) returns (bool)",
-  "function allowance(address owner, address spender) view returns (uint256)"
+    "function decimals() view returns (uint8)",
+    "function balanceOf(address owner) view returns (uint256)",
+    "function transfer(address to, uint256 amount) returns (bool)",
+    "function transferFrom(address from, address to, uint256 amount) returns (bool)",
+    "function allowance(address owner, address spender) view returns (uint256)"
 ]
 
 export const getWalletBalance = async (address) => {

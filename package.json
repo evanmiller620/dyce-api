@@ -10,7 +10,7 @@
   "scripts": {
     "start": "node index.js",
     "test": "node --experimental-vm-modules ./node_modules/.bin/jest",
-    "lint": "eslint ."
+    "lint": "eslint . --ignore-pattern 'dyce-gpt/**' --ignore-pattern 'dyce-dashboard/**'"
   },
   "author": "",
   "license": "ISC",

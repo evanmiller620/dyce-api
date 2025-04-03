@@ -44,7 +44,6 @@ export const login = async (event) => {
 
     const email = body.email;
     const password = body.password;
-
     try {
         const authCommand = new InitiateAuthCommand({
             AuthFlow: "USER_PASSWORD_AUTH",
@@ -64,6 +63,11 @@ export const login = async (event) => {
         await createUser(decodedToken, email);
         return {
             statusCode: 200,
+            headers: {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+                "Access-Control-Allow-Headers": "Content-Type",
+            },
             body: JSON.stringify({
                 authenticated: true,
                 userId: decodedToken,
@@ -73,7 +77,13 @@ export const login = async (event) => {
         };
     } catch (error) {
         console.error("Login error:", error);
-        return { statusCode: 401, body: JSON.stringify({ message: "Wrong email or password" }) };
+        return {
+            statusCode: 401, headers: {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+                "Access-Control-Allow-Headers": "Content-Type",
+            }, body: JSON.stringify({ message: "Wrong email or password" })
+        };
     }
 };
 
@@ -83,7 +93,13 @@ export const register = async (event) => {
 
     const result = signUpSchema.safeParse(body);
     if (!result.success) {
-        return { statusCode: 400, body: JSON.stringify({ message: result.error.errors[0].message }) };
+        return {
+            statusCode: 400, headers: {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+                "Access-Control-Allow-Headers": "Content-Type",
+            }, body: JSON.stringify({ message: result.error.errors[0].message })
+        };
     }
     try {
         const signUpCommand = new SignUpCommand({
@@ -93,15 +109,33 @@ export const register = async (event) => {
             UserAttributes: [{ Name: "email", Value: body.email }],
         });
         await cognitoClient.send(signUpCommand);
-        return { statusCode: 201, body: JSON.stringify({ message: "Verification email sent." }) };
+        return {
+            statusCode: 201, headers: {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+                "Access-Control-Allow-Headers": "Content-Type",
+            }, body: JSON.stringify({ message: "Verification email sent." })
+        };
     } catch (error) {
 
         if (error.name === "UsernameExistsException") {
             console.error("Registration error:", error.name);
-            return { statusCode: 401, body: JSON.stringify({ message: "Email already in use!" }) };
+            return {
+                statusCode: 401, headers: {
+                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+                    "Access-Control-Allow-Headers": "Content-Type",
+                }, body: JSON.stringify({ message: "Email already in use!" })
+            };
         }
         console.error("Registration error:", error);
-        return { statusCode: 500, body: JSON.stringify({ message: "Registration failed" }) };
+        return {
+            statusCode: 500, headers: {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+                "Access-Control-Allow-Headers": "Content-Type",
+            }, body: JSON.stringify({ message: "Registration failed" })
+        };
     }
 };
 
@@ -116,10 +150,22 @@ export const verifyEmail = async (event) => {
             ConfirmationCode: code,
         });
         await cognitoClient.send(confirmCommand);
-        return { statusCode: 200, body: JSON.stringify({ message: "Email verified" }) };
+        return {
+            statusCode: 200, headers: {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+                "Access-Control-Allow-Headers": "Content-Type",
+            }, body: JSON.stringify({ message: "Email verified" })
+        };
     } catch (error) {
         console.log("Verification error:", error);
-        return { statusCode: 400, body: JSON.stringify({ message: "Invalid verification code" }) };
+        return {
+            statusCode: 400, headers: {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+                "Access-Control-Allow-Headers": "Content-Type",
+            }, body: JSON.stringify({ message: "Invalid verification code" })
+        };
     }
 };
 
@@ -138,10 +184,22 @@ export const resendVerification = async (event) => {
             Username: email,
         });
         await cognitoClient.send(resendCommand);
-        return { statusCode: 200, body: JSON.stringify({ message: "Verification code resent" }) };
+        return {
+            statusCode: 200, headers: {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+                "Access-Control-Allow-Headers": "Content-Type",
+            }, body: JSON.stringify({ message: "Verification code resent" })
+        };
     } catch (error) {
         console.error("Resend verification error:", error);
-        return { statusCode: 404, body: JSON.stringify({ message: "User not found" }) };
+        return {
+            statusCode: 404, headers: {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+                "Access-Control-Allow-Headers": "Content-Type",
+            }, body: JSON.stringify({ message: "User not found" })
+        };
     }
 };
 
@@ -152,10 +210,22 @@ export const logout = async (event) => {
         const token = event.headers.Authorization || event.headers.authorization;
         const signOutCommand = new GlobalSignOutCommand({ AccessToken: token });
         await cognitoClient.send(signOutCommand);
-        return { statusCode: 200, body: JSON.stringify({ message: "Logout successful" }) };
+        return {
+            statusCode: 200, headers: {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+                "Access-Control-Allow-Headers": "Content-Type",
+            }, body: JSON.stringify({ message: "Logout successful" })
+        };
     } catch (error) {
         console.log("Logout error:", error);
-        return { statusCode: 400, body: JSON.stringify({ message: "Logout failed" }) };
+        return {
+            statusCode: 400, headers: {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+                "Access-Control-Allow-Headers": "Content-Type",
+            }, body: JSON.stringify({ message: "Logout failed" })
+        };
     }
 };
 
@@ -167,7 +237,11 @@ export const authCheck = async (event) => {
         if (!token) {
             console.log("No token provided");
             return {
-                statusCode: 401,
+                statusCode: 401, headers: {
+                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+                    "Access-Control-Allow-Headers": "Content-Type",
+                },
                 body: JSON.stringify({ authenticated: false, message: "No token provided" }),
             };
         }
@@ -175,13 +249,21 @@ export const authCheck = async (event) => {
         const user = await cognitoClient.send(getUserCommand);
         console.log(`User authenticated with token ${token.slice(0, 4)}...${token.slice(-4)}`)
         return {
-            statusCode: 200,
+            statusCode: 200, headers: {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+                "Access-Control-Allow-Headers": "Content-Type",
+            },
             body: JSON.stringify({ authenticated: true, user: user.Username }),
         };
     } catch (error) {
         console.error("Auth check error:", error);
         return {
-            statusCode: 401,
+            statusCode: 401, headers: {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+                "Access-Control-Allow-Headers": "Content-Type",
+            },
             body: JSON.stringify({ authenticated: false, message: "Invalid or expired token" }),
         };
     }

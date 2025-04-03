@@ -19,7 +19,12 @@ provider:
     - Effect: Allow
       Action:
         - dynamodb:*
-      Resource: "arn:aws:dynamodb:us-east-1:*:table/DyceTable"
+      Resource: 
+        - "arn:aws:dynamodb:us-east-1:*:table/DyceTable"
+        - "arn:aws:dynamodb:us-east-1:*:table/KeyTable/index/userId-index"
+        - "arn:aws:dynamodb:us-east-1:*:table/KeyTable"
+        - "arn:aws:dynamodb:us-east-1:*:table/UserTable"
+      
   httpApi:
     authorizers:
       cognitoAuthorizer:
@@ -38,6 +43,7 @@ package:
     - '!tests/**'
     - '!test-*/**'
     - '!dyce-dashboard/**'
+    - '!dyce-gpt/**'
     - '!scripts/**'
     - '!.github/**'
     - '!serverless-output/**'
@@ -183,12 +189,23 @@ functions:
           path: /get-wallet
           method: POST
 
-  business:
-    handler: src/middlewear/business.handler
+  getWalletAddress:
+    handler: src/functions/payments-functions.getWalletAddress
     events:
       - http:
-          path: /business
+          path: /get-wallet-address
           method: POST
+  
+  approveSpending:
+    handler: src/functions/payments-functions.approveSpending
+    events:
       - http:
-          path: /business
-          method: GET
+          path: /approve-spending
+          method: POST
+  
+  requestPayment:
+    handler: src/functions/payments-functions.requestPayment
+    events:
+      - http:
+          path: /request-payment
+          method: POST

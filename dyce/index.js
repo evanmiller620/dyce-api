@@ -8,6 +8,7 @@ class Dyce {
       connectWallet();
       this.connected = true;
     } catch (error) {
+      console.log(error)
       this.connected = false;
     }
   }
@@ -48,6 +49,7 @@ class Dyce {
       await approveLimit(businessWallet, parseFloat(amount));
     } catch (Error) {
       console.error("Failed to approve spending!");
+      console.log(Error);
       return false;
     }
     try {
@@ -84,6 +86,7 @@ class Dyce {
       await transferTokens(businessWallet, parseFloat(amount));
     } catch (Error) {
       console.error("Failed to transfer tokens!");
+      console.log(Error);
       return false;
     }
     return true;
