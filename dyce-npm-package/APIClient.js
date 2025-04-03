@@ -1,5 +1,6 @@
 const apiKey = import.meta.env.VITE_API_KEY;
 
+
 class APIClient {
   constructor(token) {
     this.baseURL = "http://localhost:8080"; // Local

@@ -8,25 +8,67 @@ dotenv.config();
 export const addWallet = async (event) => {
     console.log("Received add wallet request");
     const user = await getAuthThenUser(event);
-    if (!user) return { statusCode: 401, body: JSON.stringify({ message: "Unauthorized" }) };
+    if (!user) return {
+        statusCode: 401, headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type",
+        }, body: JSON.stringify({ message: "Unauthorized" })
+    };
     const { name, address, key } = JSON.parse(event.body);
-    if (!name || !address || !key) return { statusCode: 400, body: JSON.stringify({ message: "Wallet name, address, and private key are required" }) };
-    if (user.wallets?.some(wallet => wallet.name === name)) return { statusCode: 400, body: JSON.stringify({ message: "Wallet name already in use" }) };
-    if (user.wallets?.some(wallet => wallet.address === address)) return { statusCode: 400, body: JSON.stringify({ message: "Wallet already added" }) };
+    if (!name || !address || !key) return {
+        statusCode: 400, headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type",
+        }, body: JSON.stringify({ message: "Wallet name, address, and private key are required" })
+    };
+    if (user.wallets?.some(wallet => wallet.name === name)) return {
+        statusCode: 400, headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type",
+        }, body: JSON.stringify({ message: "Wallet name already in use" })
+    };
+    if (user.wallets?.some(wallet => wallet.address === address)) return {
+        statusCode: 400, headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type",
+        }, body: JSON.stringify({ message: "Wallet already added" })
+    };
 
     const valid = await verifyWallet(address, key);
     if (!valid)
-        return { statusCode: 400, body: JSON.stringify({ message: "Invalid wallet credentials" }) };
+        return {
+            statusCode: 400, headers: {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+                "Access-Control-Allow-Headers": "Content-Type",
+            }, body: JSON.stringify({ message: "Invalid wallet credentials" })
+        };
 
     await addNewWallet(user.id, name, address, key);
-    return { statusCode: 200, body: JSON.stringify({ message: "Successfully added wallet!" }) };
+    return {
+        statusCode: 200, headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type",
+        }, body: JSON.stringify({ message: "Successfully added wallet!" })
+    };
 };
 
 // Get wallets route
 export const getWallets = async (event) => {
     console.log("Received get wallets request");
     const user = await getAuthThenUser(event);
-    if (!user) return { statusCode: 401, body: JSON.stringify({ message: "Unauthorized" }) };
+    if (!user) return {
+        statusCode: 401, headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type",
+        }, body: JSON.stringify({ message: "Unauthorized" })
+    };
     const formattedWallets = await Promise.all(
         user.wallets?.map(async ({ name, address }) => ({
             name,
@@ -34,21 +76,45 @@ export const getWallets = async (event) => {
             balance: await getWalletBalance(address)
         }))
     );
-    return { statusCode: 200, body: JSON.stringify({ wallets: formattedWallets }) };
+    return {
+        statusCode: 200, headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type",
+        }, body: JSON.stringify({ wallets: formattedWallets })
+    };
 };
 
 // Revoke wallet route
 export const removeWallet = async (event) => {
     console.log("Received remove wallet request");
     const user = await getAuthThenUser(event);
-    if (!user) return { statusCode: 401, body: JSON.stringify({ message: "Unauthorized" }) };
+    if (!user) return {
+        statusCode: 401, headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type",
+        }, body: JSON.stringify({ message: "Unauthorized" })
+    };
     const { name } = JSON.parse(event.body);
-    if (!name) return { statusCode: 400, body: JSON.stringify({ message: "Wallet name required" }) };
+    if (!name) return {
+        statusCode: 400, headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type",
+        }, body: JSON.stringify({ message: "Wallet name required" })
+    };
 
     const updatedWallets = user.wallets?.filter(wallet => wallet.name !== name) || [];
     const userKeys = await getKeysByUser(user.id);
     for (let apiKey of userKeys)
         if (apiKey.wallet === name) await setWalletName(apiKey.key, null);
     await updateWallets(user.id, updatedWallets);
-    return { statusCode: 200, body: JSON.stringify({ message: "Wallet removed successfully" }) };
+    return {
+        statusCode: 200, headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type",
+        }, body: JSON.stringify({ message: "Wallet removed successfully" })
+    };
 };
