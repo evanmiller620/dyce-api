@@ -76,6 +76,32 @@ export const deleteKey = async (key) => {
     await dynamo.send(command);
 }
 
+// Set the use count of an API key
+export const updateUseCount = async (key) => {
+    const date = new Date().toISOString().split('T')[0];
+    const command = new UpdateCommand({
+        TableName: KEYS_TABLE,
+        Key: { key: key },
+        UpdateExpression: "ADD useCounts.#date :useCount",
+        ExpressionAttributeNames: { "#date": date },
+        ExpressionAttributeValues: { ":useCount": 1 },
+    });
+    await dynamo.send(command);
+}
+
+// Add transfer amount to API key history
+export const updateTxAmount = async (key, amount) => {
+    const date = new Date().toISOString().split('T')[0];
+    const command = new UpdateCommand({
+        TableName: KEYS_TABLE,
+        Key: { key: key },
+        UpdateExpression: "ADD txAmounts.#date :txAmount",
+        ExpressionAttributeNames: { "#date": date },
+        ExpressionAttributeValues: { ":txAmount": amount },
+    });
+    await dynamo.send(command);
+}
+
 // Set the wallet name assigned to an API key
 export const setWalletName = async (key, walletName) => {
     const command = new UpdateCommand({

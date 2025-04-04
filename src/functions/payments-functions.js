@@ -1,6 +1,6 @@
 import { ethers } from 'ethers'
 
-import { getKey, getUserById, getOrAddClientUser, addClientWallet, addClientKeyIfNotExists, getClientWallets } from './dynamo-functions.js';
+import { getKey, getUserById, getOrAddClientUser, addClientWallet, addClientKeyIfNotExists, getClientWallets, updateUseCount, updateTxAmount } from './dynamo-functions.js';
 import { EtherscanProvider } from 'ethers';
 import { badRequestResponse, notFoundResponse, successResponse, unauthorizedResponse } from './responses.js';
 import dotenv from "dotenv";
@@ -41,6 +41,7 @@ export const approveSpending = async (event) => {
     if (!user?.apiKeys?.[apiKey.key]?.wallets?.[wallet])
         await addClientKeyIfNotExists(userId, apiKey.key);
     await addClientWallet(userId, apiKey.key, wallet);
+    await updateUseCount(apiKey.key);
     return successResponse({ message: "Spending approved successfully" });
 }
 
@@ -83,6 +84,8 @@ export const requestPayment = async (event) => {
         console.log(txHash);
     }
 
+    await updateUseCount(apiKey.key);
+    await updateTxAmount(apiKey.key, amount);
     return successResponse({ message: "Processed payment successfully" });
 };
 
