@@ -1,24 +1,12 @@
 import { createUser, getUserById } from "./dynamo-functions.js"
-import {
-    CognitoIdentityProviderClient,
-    InitiateAuthCommand,
-    SignUpCommand,
-    ConfirmSignUpCommand,
-    GetUserCommand,
-    GlobalSignOutCommand,
-    AdminGetUserCommand,
-    ResendConfirmationCodeCommand
-} from "@aws-sdk/client-cognito-identity-provider";
+import { CognitoIdentityProviderClient, InitiateAuthCommand, SignUpCommand, ConfirmSignUpCommand, GetUserCommand, GlobalSignOutCommand, AdminGetUserCommand, ResendConfirmationCodeCommand } from "@aws-sdk/client-cognito-identity-provider";
 import z from "zod";
 import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
-// import jwksClient from "jwks-rsa";
-// import { v4 as uuidv4 } from 'uuid';
-// import bcrypt from "bcryptjs";
-// import { id } from "ethers";
+import { badRequestResponse, errorResponse, notFoundResponse, successResponse, unauthorizedResponse } from "./responses.js";
 dotenv.config();
 
-// connecto to cognito
+// Connect to Cognito
 const cognitoClient = new CognitoIdentityProviderClient({ region: process.env.AWS_REGION });
 const CLIENT_ID = process.env.COGNITO_CLIENT_ID;
 const USER_POOL_ID = process.env.COGNITO_USER_POOL_ID;
@@ -37,11 +25,7 @@ const signUpSchema = z.object({
 
 export const login = async (event) => {
     console.log("Received login request");
-    console.log(event);
     const body = JSON.parse(event.body);
-    console.log("authorizer");
-    console.log(event);
-
     const email = body.email;
     const password = body.password;
     try {
@@ -54,36 +38,18 @@ export const login = async (event) => {
             }
         });
         const authResponse = await cognitoClient.send(authCommand);
-        console.log("Login successful");
         const idToken = authResponse.AuthenticationResult.IdToken
         const accessToken = authResponse.AuthenticationResult.AccessToken;
         var decodedToken = jwt.decode(idToken); // get unchanging user id from token
         decodedToken = decodedToken["cognito:username"];
 
         await createUser(decodedToken, email);
-        return {
-            statusCode: 200,
-            headers: {
-                "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-                "Access-Control-Allow-Headers": "Content-Type",
-            },
-            body: JSON.stringify({
-                authenticated: true,
-                userId: decodedToken,
-                accessToken: accessToken,
-                idToken: idToken,
-            }),
-        };
-    } catch (error) {
-        console.error("Login error:", error);
-        return {
-            statusCode: 401, headers: {
-                "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-                "Access-Control-Allow-Headers": "Content-Type",
-            }, body: JSON.stringify({ message: "Wrong email or password" })
-        };
+        return successResponse({
+            authenticated: true, userId: decodedToken,
+            accessToken: accessToken, idToken: idToken
+        });
+    } catch {
+        return unauthorizedResponse("Wrong email or password");
     }
 };
 
@@ -92,15 +58,9 @@ export const register = async (event) => {
     const body = JSON.parse(event.body);
 
     const result = signUpSchema.safeParse(body);
-    if (!result.success) {
-        return {
-            statusCode: 400, headers: {
-                "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-                "Access-Control-Allow-Headers": "Content-Type",
-            }, body: JSON.stringify({ message: result.error.errors[0].message })
-        };
-    }
+    if (!result.success)
+        return badRequestResponse(result.error.errors[0].message)
+
     try {
         const signUpCommand = new SignUpCommand({
             ClientId: CLIENT_ID,
@@ -109,33 +69,11 @@ export const register = async (event) => {
             UserAttributes: [{ Name: "email", Value: body.email }],
         });
         await cognitoClient.send(signUpCommand);
-        return {
-            statusCode: 201, headers: {
-                "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-                "Access-Control-Allow-Headers": "Content-Type",
-            }, body: JSON.stringify({ message: "Verification email sent." })
-        };
+        return successResponse({ message: "Verification email sent." });
     } catch (error) {
-
-        if (error.name === "UsernameExistsException") {
-            console.error("Registration error:", error.name);
-            return {
-                statusCode: 401, headers: {
-                    "Access-Control-Allow-Origin": "*",
-                    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-                    "Access-Control-Allow-Headers": "Content-Type",
-                }, body: JSON.stringify({ message: "Email already in use!" })
-            };
-        }
-        console.error("Registration error:", error);
-        return {
-            statusCode: 500, headers: {
-                "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-                "Access-Control-Allow-Headers": "Content-Type",
-            }, body: JSON.stringify({ message: "Registration failed" })
-        };
+        if (error.name === "UsernameExistsException")
+            return badRequestResponse("Email already in use!");
+        return errorResponse("Registration failed");
     }
 };
 
@@ -150,25 +88,13 @@ export const verifyEmail = async (event) => {
             ConfirmationCode: code,
         });
         await cognitoClient.send(confirmCommand);
-        return {
-            statusCode: 200, headers: {
-                "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-                "Access-Control-Allow-Headers": "Content-Type",
-            }, body: JSON.stringify({ message: "Email verified" })
-        };
-    } catch (error) {
-        console.log("Verification error:", error);
-        return {
-            statusCode: 400, headers: {
-                "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-                "Access-Control-Allow-Headers": "Content-Type",
-            }, body: JSON.stringify({ message: "Invalid verification code" })
-        };
+        return successResponse({ message: "Email verified" });
+    } catch {
+        return badRequestResponse("Invalid verification code");
     }
 };
 
+// Resend email verification route
 export const resendVerification = async (event) => {
     console.log("Received resend verification request");
     const { email } = JSON.parse(event.body);
@@ -184,22 +110,10 @@ export const resendVerification = async (event) => {
             Username: email,
         });
         await cognitoClient.send(resendCommand);
-        return {
-            statusCode: 200, headers: {
-                "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-                "Access-Control-Allow-Headers": "Content-Type",
-            }, body: JSON.stringify({ message: "Verification code resent" })
-        };
+        return successResponse({ message: "Verification code resent" });
     } catch (error) {
         console.error("Resend verification error:", error);
-        return {
-            statusCode: 404, headers: {
-                "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-                "Access-Control-Allow-Headers": "Content-Type",
-            }, body: JSON.stringify({ message: "User not found" })
-        };
+        return notFoundResponse("User not found" );
     }
 };
 
@@ -210,62 +124,24 @@ export const logout = async (event) => {
         const token = event.headers.Authorization || event.headers.authorization;
         const signOutCommand = new GlobalSignOutCommand({ AccessToken: token });
         await cognitoClient.send(signOutCommand);
-        return {
-            statusCode: 200, headers: {
-                "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-                "Access-Control-Allow-Headers": "Content-Type",
-            }, body: JSON.stringify({ message: "Logout successful" })
-        };
-    } catch (error) {
-        console.log("Logout error:", error);
-        return {
-            statusCode: 400, headers: {
-                "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-                "Access-Control-Allow-Headers": "Content-Type",
-            }, body: JSON.stringify({ message: "Logout failed" })
-        };
+        return successResponse({ message: "Logout successful" });
+    } catch {
+        return errorResponse("Logout failed");
     }
 };
 
-// check if user is authenticated
+// Check if user is authenticated
 export const authCheck = async (event) => {
     console.log("Received auth check request");
     try {
         const token = event.headers.Authorization || event.headers.authorization;
-        if (!token) {
-            console.log("No token provided");
-            return {
-                statusCode: 401, headers: {
-                    "Access-Control-Allow-Origin": "*",
-                    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-                    "Access-Control-Allow-Headers": "Content-Type",
-                },
-                body: JSON.stringify({ authenticated: false, message: "No token provided" }),
-            };
-        }
+        if (!token) return badRequestResponse("No token provided");
         const getUserCommand = new GetUserCommand({ AccessToken: token });
         const user = await cognitoClient.send(getUserCommand);
-        console.log(`User authenticated with token ${token.slice(0, 4)}...${token.slice(-4)}`)
-        return {
-            statusCode: 200, headers: {
-                "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-                "Access-Control-Allow-Headers": "Content-Type",
-            },
-            body: JSON.stringify({ authenticated: true, user: user.Username }),
-        };
-    } catch (error) {
-        console.error("Auth check error:", error);
-        return {
-            statusCode: 401, headers: {
-                "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-                "Access-Control-Allow-Headers": "Content-Type",
-            },
-            body: JSON.stringify({ authenticated: false, message: "Invalid or expired token" }),
-        };
+        // console.log(`User authenticated with token ${token.slice(0, 4)}...${token.slice(-4)}`);
+        return successResponse({ authenticated: true, user: user.Username });
+    } catch {
+        return unauthorizedResponse("Invalid or expired token");
     }
 };
 

@@ -32,7 +32,9 @@ export const createUser = async (username, email) => {
     });
     try {
         await dynamo.send(command);
-    } catch (error) { console.log(error); }
+    } catch (err) {
+        if (err.name !== "ConditionalCheckFailedException") throw err;
+    }
 }
 
 // ==============================
@@ -58,7 +60,8 @@ export const createKey = async (key, userId, name, walletName) => {
             userId: userId,
             name: name,
             wallet: walletName,
-            useCount: 0,
+            useCounts: {},
+            txAmounts: {},
         },
     });
     await dynamo.send(command);
@@ -72,28 +75,6 @@ export const deleteKey = async (key) => {
     });
     await dynamo.send(command);
 }
-
-// Set the use count of an API key
-export const setUseCount = async (key, count) => {
-    const command = new UpdateCommand({
-        TableName: KEYS_TABLE,
-        Key: { key: key },
-        UpdateExpression: "SET useCount = :useCount",
-        ExpressionAttributeValues: { ":useCount": count },
-    });
-    await dynamo.send(command);
-}
-
-// Add transfer amount to API key history
-// export const setTxAmount = async (key, amount) => {
-//     const command = new UpdateCommand({
-//         TableName: KEYS_TABLE,
-//         Key: { key: key },
-//         UpdateExpression: "SET txAmount = :txAmount",
-//         ExpressionAttributeValues: { ":txAmount": amount },
-//     });
-//     await dynamo.send(command);
-// }
 
 // Set the wallet name assigned to an API key
 export const setWalletName = async (key, walletName) => {
@@ -204,8 +185,7 @@ export const addClientWallet = async (userId, apiKey, wallet) => {
     try {
         await dynamo.send(command);
     } catch (err) {
-        if (err.name !== "ConditionalCheckFailedException")
-            throw err;
+        if (err.name !== "ConditionalCheckFailedException") throw err;
     }
 };
 
