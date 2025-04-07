@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react'
-import Dyce from '../../../../dyce'
+import Dyce from "dyce"
 
 export const Tester = () => {
   const [apiKey, setApiKey] = useState("");
