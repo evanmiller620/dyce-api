@@ -76,7 +76,7 @@ export const deleteKey = async (key) => {
     await dynamo.send(command);
 }
 
-// Set the use count of an API key
+// Increment the use count of an API key for the day
 export const updateUseCount = async (key) => {
     const date = new Date().toISOString().split('T')[0];
     const command = new UpdateCommand({
@@ -89,7 +89,18 @@ export const updateUseCount = async (key) => {
     await dynamo.send(command);
 }
 
-// Add transfer amount to API key history
+// Get the map of dates to use counts for an API key
+export const getUseCounts = async (key) => {
+    const command = new GetCommand({
+        TableName: KEYS_TABLE,
+        Key: { key: key },
+        ProjectionExpression: "useCounts"
+    });
+    const response = await dynamo.send(command);
+    return response.Item?.useCounts || {};
+};
+
+// Add transfer amount to API key history for the day
 export const updateTxAmount = async (key, amount) => {
     const date = new Date().toISOString().split('T')[0];
     const command = new UpdateCommand({
@@ -101,6 +112,17 @@ export const updateTxAmount = async (key, amount) => {
     });
     await dynamo.send(command);
 }
+
+// Get the map of dates to transaction amounts for an API key
+export const getTxAmounts = async (key) => {
+    const command = new GetCommand({
+        TableName: KEYS_TABLE,
+        Key: { key: key },
+        ProjectionExpression: "txAmounts"
+    });
+    const response = await dynamo.send(command);
+    return response.Item?.txAmounts || {};
+};
 
 // Set the wallet name assigned to an API key
 export const setWalletName = async (key, walletName) => {
@@ -121,7 +143,6 @@ export const getKeysByUser = async (userId) => {
         KeyConditionExpression: "userId = :userId",
         ExpressionAttributeValues: { ":userId": userId },
     });
-
     const { Items } = await dynamo.send(command);
     return Items.length ? Items : [];
 }
@@ -191,7 +212,9 @@ export const addClientKeyIfNotExists = async (userId, apiKey) => {
     });
     try {
         await dynamo.send(command);
-    } catch (error) { console.log(error); }
+    } catch (err) {
+        if (err.name !== "ConditionalCheckFailedException") throw err;
+    }
 };
 
 export const addClientWallet = async (userId, apiKey, wallet) => {

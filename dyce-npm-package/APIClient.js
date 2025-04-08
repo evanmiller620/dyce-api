@@ -37,10 +37,10 @@ class APIClient {
       }
 
       const response = await fetch(`${this.baseURL}/${endpoint}`, options);
-      console.log(response)
+      // console.log(response)
       return response;
     } catch (error) {
-      console.error("Request failed: ", error);
+      // console.error("Request failed: ", error);
       throw new Error("Request failed: ", error);
     }
   }
@@ -76,6 +76,14 @@ class APIClient {
 
   async addWallet(name, walletAddress, walletKey) {
     return this.request('add-wallet', 'POST', { name: name, address: walletAddress, key: walletKey });
+  }
+
+  async getUsageHistory(keyName) {
+    return this.request('get-usage-history', 'POST', { keyName: keyName });
+  }
+
+  async getTxHistory(keyName) {
+    return this.request('get-tx-history', 'POST', { keyName: keyName });
   }
 
   // auth functions
