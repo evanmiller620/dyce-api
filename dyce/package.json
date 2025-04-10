@@ -1,0 +1,13 @@
+{
+  "name": "dyce",
+  "version": "0.1.1",
+  "description": "The official JavaScript library for the Dyce API",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}

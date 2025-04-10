@@ -1,0 +1,258 @@
+nav {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
+    background-color: white;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+nav * {
+    margin: 0 15px;
+}
+
+nav a {
+    color: black;
+}
+
+#profile {
+    display: inline-flex;
+    width: 40px;
+    height: 40px;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background-color: transparent;
+    outline: none;
+}
+
+#menu {
+    background-color: #007bff;
+    color: white;
+    border-radius: 5px;
+    position: fixed;
+    top: 45px;
+}
+
+button {
+    background-color: #00a2ff;
+    color: white;
+    border-radius: 5px;
+    padding: 10px;
+    border: none;
+    margin: 5px;
+}
+
+.title {
+    text-align: center;
+    font-size: 32px;
+    margin-top: 10px;
+    margin: 0 auto;
+}
+
+.managers-wrapper {
+    display: flex;
+    justify-content: start;
+    margin: 10px;
+}
+
+.manager {
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    background: #ffffff;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    margin: 10px;
+    height: calc(100vh - 130px);
+}
+
+.keys-wrapper {
+    width: 500px;
+}
+
+.wallets-wrapper {
+    width: 400px;
+}
+
+.usage-wrapper {
+    flex: 1;
+}
+
+.usage-wrapper img {
+    margin: 30px;
+}
+
+.tester-wrapper {
+    flex: 1;
+}
+
+.tester-wrapper input, button {
+    font-size: 16px;
+}
+
+.keys-wrapper * {
+    margin: 5px;
+}
+
+.wallets-wrapper * {
+    margin: 5px;
+}
+
+.header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header-container h1 {
+    margin-top: 0;
+    margin-bottom: 0;
+    /* font-size: 32px; */
+}
+
+.table-container {
+    overflow-y: auto;
+    margin: 0;
+    border-radius: 10px;
+    background-color: #007bff;
+}
+
+.table-container::-webkit-scrollbar {
+    display: none;
+}
+
+.table-container * {
+    margin: 0;
+}
+
+table {
+    background-color: #007bff;
+    color: white;
+    table-layout: fixed;
+    width: 100%;
+    border-spacing: 0px;
+}
+
+td, th {
+    text-align: left;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    padding: 8px;
+}
+
+th {
+    position: sticky;
+    top: 0;
+    background-color: #007bff;
+}
+
+tbody tr:nth-child(odd) {
+    background-color: #2e93ff;
+}
+
+select {
+    border: none;
+    border-radius: 5px;
+    outline: none;
+    padding: 5px;
+    width: 100%;
+    text-overflow: ellipsis;
+}
+
+option {
+    background-color: #2e93ff;
+}
+
+.trash, .refresh {
+    margin-left: auto;
+    display: inline-flex;
+    width: 30px;
+    height: 30px;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background-color: transparent;
+    outline: none;
+}
+
+.popup-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.5);
+    margin: 0;
+    z-index: 1;
+}
+
+.popup {
+    display: flex;
+    flex-direction: column;
+    background-color: white;
+    border-radius: 10px;
+    padding: 10px;
+}
+
+.manager input {
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin: 5px;
+}
+
+.popup input.copy {
+    padding-right: 50px;
+}
+
+.popup * {
+    font-size: 16px;
+}
+
+.popup button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-grow: 1;
+}
+
+.popup button.copy {
+    width: 40px;
+    height: 40px;
+    margin-left: -50px;
+    background-color: transparent;
+    align-self: center;
+}
+
+.popup button.copy:hover {
+    background-color: rgba(0, 0, 0, 0.2);
+}
+
+.popup button.copy:active {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+.popup .error-message {
+    color: red;
+    font-size: 14px;
+    align-self: flex-start;
+    margin: 5px;
+}
+
+.usage-wrapper h3 {
+    margin-bottom: 10px;
+}
+
+.recharts-wrapper {
+    margin-left: -10px;
+}
+
+.usage-wrapper .refresh img {
+    width: 40px;
+    height: 40px;
+}

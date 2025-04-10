@@ -7,15 +7,205 @@ provider:
   name: aws
   runtime: nodejs18.x
   region: us-east-1
-  stage: dev
+  stage: main
+  stackName: dyce-api-main
+  apiGateway:
+    apiKeySourceType: HEADER
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+      - cognito-idp:*
+      Resource: "*"
+    - Effect: Allow
+      Action:
+        - dynamodb:*
+      Resource: 
+        - "arn:aws:dynamodb:us-east-1:*:table/DyceTable"
+        - "arn:aws:dynamodb:us-east-1:*:table/KeyTable/index/userId-index"
+        - "arn:aws:dynamodb:us-east-1:*:table/KeyTable"
+        - "arn:aws:dynamodb:us-east-1:*:table/UserTable"
+      
+  httpApi:
+    authorizers:
+      cognitoAuthorizer:
+        type: jwt
+        identitySource: "$request.header.Authorization"
+        issuerUrl: "https://cognito-idp.us-east-1.amazonaws.com/us-east-1_k3o0XkoOy"
+        audience: "bigcqvpp9bdrpqh3ema863j9h"
 
+# include/exclude rules for lambda function
+package:
+  patterns:
+    - 'src/**'
+    - 'index.js'
+    - 'package.json'
+    # - '!node_modules/**'
+    - '!tests/**'
+    - '!test-*/**'
+    - '!dyce-dashboard/**'
+    - '!dyce-gpt/**'
+    - '!scripts/**'
+    - '!.github/**'
+    - '!serverless-output/**'
+    - '!README.md'
+
+plugins:
+  - serverless-domain-manager
+
+# https://www.serverless.com/plugins/serverless-domain-manager
+custom:
+  customDomain:
+    domainName: dyce.live
+    stage: ${opt:stage, self:provider.stage}
+    basePath: '' # cahnge Api base path, ex /v1
+    certificateName: dyce.live
+    certificateArn: arn:aws:acm:us-east-1:057172434278:certificate/662d8dd1-d4e9-45e1-8ced-764fd4464e7a
+    createRoute53Record: false
+    createRoute53IPv6Record: false
+    endpointType: REGIONAL
+    securityPolicy: tls_1_2
+    apiType: rest
+    autoDomain: true
+
+# schema that describes what events go to what functions
 functions:
   app:
-    handler: index.handler
+    handler: index.root_test
     events:
       - http:
           path: /
           method: GET
+
+  authCheck:
+    handler: src/functions/dashboard-login-functions.authCheck
+    events:
       - http:
-          path: "{proxy+}" # catch-all route
-          method: ANY
+          path: /auth-check
+          method: GET
+
+  login:
+    handler: src/functions/dashboard-login-functions.login
+    events:
+      - http:
+          path: /login
+          method: POST
+          cors: true
+
+  register:
+    handler: src/functions/dashboard-login-functions.register
+    events:
+      - http:
+          path: /register
+          method: POST
+
+  verifyEmail:
+    handler: src/functions/dashboard-login-functions.verifyEmail
+    events:
+      - http:
+          path: /verify-email
+          method: POST
+
+  resendVerification:
+    handler: src/functions/dashboard-login-functions.resendVerification
+    events:
+      - http:
+          path: /resend-verification
+          method: POST
+
+  logout:
+    handler: src/functions/dashboard-login-functions.logout
+    events:
+      - http:
+          path: /logout
+          method: POST
+  
+  addWallet:
+    handler: src/functions/dashboard-wallets-functions.addWallet
+    events:
+      - http:
+          path: /add-wallet
+          method: POST
+  
+  getWallets:
+    handler: src/functions/dashboard-wallets-functions.getWallets
+    events:
+      - http:
+          path: /get-wallets
+          method: GET
+          
+  removeWallet:
+    handler: src/functions/dashboard-wallets-functions.removeWallet
+    events:
+      - http:
+          path: /remove-wallet
+          method: POST
+  
+  getWalletBalance:
+    handler: src/functions/dashboard-wallets-functions.getWalletBalance
+    events:
+      - http:
+          path: /get-wallet-balance
+          method: POST
+
+  generateApiKey:
+    handler: src/functions/dashboard-keys-functions.generateApiKey
+    events:
+      - http:
+          path: /generate-api-key
+          method: POST
+  
+  getApiKeys:
+    handler: src/functions/dashboard-keys-functions.getApiKeys
+    events:
+      - http:
+          path: /get-api-keys
+          method: GET
+
+  deleteApiKey:
+    handler: src/functions/dashboard-keys-functions.deleteApiKey
+    events:
+      - http:
+          path: /delete-api-key 
+          method: POST
+  
+  useApiKey:
+    handler: src/functions/dashboard-keys-functions.useApiKey
+    events:
+      - http:
+          path: /use-api-key
+          method: POST
+  
+  setWallet:
+    handler: src/functions/dashboard-keys-functions.setWallet
+    events:
+      - http:
+          path: /set-wallet
+          method: POST
+
+  getWallet:
+    handler: src/functions/dashboard-keys-functions.getWallet
+    events:
+      - http:
+          path: /get-wallet
+          method: POST
+
+  getWalletAddress:
+    handler: src/functions/payments-functions.getWalletAddress
+    events:
+      - http:
+          path: /get-wallet-address
+          method: POST
+  
+  approveSpending:
+    handler: src/functions/payments-functions.approveSpending
+    events:
+      - http:
+          path: /approve-spending
+          method: POST
+  
+  requestPayment:
+    handler: src/functions/payments-functions.requestPayment
+    events:
+      - http:
+          path: /request-payment
+          method: POST
