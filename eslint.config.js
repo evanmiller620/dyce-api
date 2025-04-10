@@ -6,7 +6,7 @@ import pluginJs from "@eslint/js";
 export default [
   {languageOptions: { globals: {
     ...globals.node,
-    ...globals.jest,
+    ...globals.jest,   // Adds Jest globals
   }
   }},
   pluginJs.configs.recommended,
