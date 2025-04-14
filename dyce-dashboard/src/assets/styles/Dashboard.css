@@ -1,10 +1,22 @@
+.db-wrapper {
+    background-color: #ccc;
+    display: flex;
+    flex-direction: row;
+    flex: 1;
+}
+
+.dashboard-wrapper {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
 nav {
     display: flex;
     flex-direction: row;
     justify-content: flex-end;
     align-items: center;
-    background-color: white;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    width: 100%;
 }
 
 nav * {
@@ -35,8 +47,8 @@ nav a {
 }
 
 button {
-    background-color: #00a2ff;
-    color: white;
+    background-color: #51bfff;
+    color: black;
     border-radius: 5px;
     padding: 10px;
     border: none;
@@ -53,38 +65,21 @@ button {
 .managers-wrapper {
     display: flex;
     justify-content: start;
-    margin: 10px;
+    margin: 0;
+    background-color: white;
+    border-radius: 20px 0 0 0;
 }
 
 .manager {
-    border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    background: #ffffff;
     padding: 20px;
     display: flex;
     flex-direction: column;
-    margin: 10px;
-    height: calc(100vh - 130px);
-}
-
-.keys-wrapper {
-    width: 500px;
-}
-
-.wallets-wrapper {
-    width: 400px;
-}
-
-.usage-wrapper {
+    height: calc(100vh - 90px);
     flex: 1;
 }
 
 .usage-wrapper img {
     margin: 30px;
-}
-
-.tester-wrapper {
-    flex: 1;
 }
 
 .tester-wrapper input, button {
@@ -103,19 +98,17 @@ button {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin: 5px;
+    gap: 10px;
 }
 
 .header-container h1 {
-    margin-top: 0;
-    margin-bottom: 0;
-    /* font-size: 32px; */
+    margin: 5px;
 }
 
 .table-container {
     overflow-y: auto;
     margin: 0;
-    border-radius: 10px;
-    background-color: #007bff;
 }
 
 .table-container::-webkit-scrollbar {
@@ -127,8 +120,6 @@ button {
 }
 
 table {
-    background-color: #007bff;
-    color: white;
     table-layout: fixed;
     width: 100%;
     border-spacing: 0px;
@@ -145,11 +136,20 @@ td, th {
 th {
     position: sticky;
     top: 0;
-    background-color: #007bff;
+    background-color: white;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.2);
 }
 
-tbody tr:nth-child(odd) {
-    background-color: #2e93ff;
+td {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+tbody tr.selected {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+tbody tr:hover {
+    background-color: rgba(0, 0, 0, 0.2);
 }
 
 select {
@@ -157,16 +157,16 @@ select {
     border-radius: 5px;
     outline: none;
     padding: 5px;
-    width: 100%;
+    /* width: 100%; */
     text-overflow: ellipsis;
+    background-color: rgba(0, 0, 0, 0.1);
 }
 
 option {
-    background-color: #2e93ff;
+    background-color: white;
 }
 
 .trash, .refresh {
-    margin-left: auto;
     display: inline-flex;
     width: 30px;
     height: 30px;
@@ -175,6 +175,13 @@ option {
     border: none;
     background-color: transparent;
     outline: none;
+}
+
+.wallets-wrapper .refresh {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }
 
 .popup-container {
@@ -244,15 +251,56 @@ option {
     margin: 5px;
 }
 
-.usage-wrapper h3 {
-    margin-bottom: 10px;
+.recharts-wrapper {
+    /* margin-left: -10px; */
 }
 
-.recharts-wrapper {
-    margin-left: -10px;
+.key-usage-wrapper {
+    width: 45vw;
+    flex: none;
+}
+
+.usage-wrapper .pie-title {
+    margin: 0;
 }
 
 .usage-wrapper .refresh img {
     width: 40px;
     height: 40px;
+}
+
+.usage-wrapper label {
+    margin-left: auto;
+    margin-right: -5px;
+}
+
+.usage-wrapper select {
+    width: 100px;
+    font-size: 16px;
+    background-color: #51bfff;
+}
+
+.usage-wrapper .col {
+    flex: 1;
+}
+
+.usage-wrapper .row {
+    flex: 1;
+    height: 100%;
+}
+
+.usage-wrapper h3 {
+    margin: 10px;
+}
+
+button.refresh {
+    padding: 20px;
+}
+
+button.refresh:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+button.refresh:active {
+    background-color: rgba(0, 0, 0, 0.2);
 }

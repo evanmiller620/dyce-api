@@ -1,18 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { useAPIClient } from '../DyceApi';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import Refresh from "@/assets/icons/refresh_dark.svg";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Legend, Cell } from 'recharts';
+import Refresh from "@/assets/icons/refresh.svg";
 
 export const UsageManager = () => {
   const [usageData, setUsageData] = useState([]);
+  const [usageTotals, setUsageTotals] = useState([]);
   const [txData, setTxData] = useState([]);
+  const [txTotals, setTxTotals] = useState([]);
   const [apiKeys, setApiKeys] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [timeRange, setTimeRange] = useState(30);
   const api = useAPIClient();
 
   useEffect(() => {
     getHistory();
-  }, []);
+  }, [timeRange]);
 
   async function getUsageHistory(keyName) {
     try {
@@ -46,17 +49,24 @@ export const UsageManager = () => {
 
       let usageMap = {};
       let txMap = {};
+      let usageTotals = {};
+      let txTotals = {};
+
       for (const apiKey of data.apiKeys) {
         const keyName = apiKey.name;
         const useCounts = await getUsageHistory(keyName);
         for (const [date, count] of Object.entries(useCounts)) {
           if (!usageMap[date]) usageMap[date] = {};
           usageMap[date][keyName] = count;
+          if (!usageTotals[keyName]) usageTotals[keyName] = 0;
+          usageTotals[keyName] += count;
         }
         const txAmounts = await getTxHistory(keyName);
         for (const [date, amount] of Object.entries(txAmounts)) {
           if (!txMap[date]) txMap[date] = {};
           txMap[date][keyName] = amount;
+          if (!txTotals[keyName]) txTotals[keyName] = 0;
+          txTotals[keyName] += amount;
         }
       }
       
@@ -70,7 +80,7 @@ export const UsageManager = () => {
         return dates;
       };
 
-      const dates = getLastNDays(10);
+      const dates = getLastNDays(timeRange);
       for (const date of dates) {
         if (!usageMap[date]) usageMap[date] = {};
         if (!txMap[date]) txMap[date] = {};
@@ -78,12 +88,19 @@ export const UsageManager = () => {
 
       var usageList = Object.entries(usageMap).map(([date, values]) => ({ date, ...values }));
       var txList = Object.entries(txMap).map(([date, values]) => ({ date, ...values }));
+      var usagePieData = Object.entries(usageTotals).map(([key, value]) => ({ name: key, value }));
+      var txPieData = Object.entries(txTotals).map(([key, value]) => ({ name: key, value }));
+
       usageList = usageList.filter(item => dates.includes(item.date));
       txList = txList.filter(item => dates.includes(item.date));
+
       usageList.sort((a, b) => new Date(a.date) - new Date(b.date));
       txList.sort((a, b) => new Date(a.date) - new Date(b.date));
+
       setUsageData(usageList);
+      setUsageTotals(usagePieData);
       setTxData(txList);
+      setTxTotals(txPieData);
       setLoading(false);
     } catch (error) {
       console.error("Request failed: ", error);
@@ -116,38 +133,76 @@ export const UsageManager = () => {
     <div className='manager usage-wrapper'>
       <div className='header-container'>
         <h1>Usage</h1>
+        <label>Past</label>
+        <select value={timeRange} onChange={(e) => setTimeRange(Number(e.target.value))} disabled={loading}>
+          <option value={7}>7 Days</option>
+          <option value={14}>14 Days</option>
+          <option value={30}>30 Days</option>
+        </select>
         <button className="refresh" onClick={() => getHistory()} disabled={loading}>
           <img src={Refresh} alt="X" height="24" />
         </button>
       </div>
 
-      <h3>Requests</h3>
-      <ResponsiveContainer style={{ pointerEvents: loading ? 'none' : 'auto', opacity: loading ? 0.5 : 1 }}>
-        <BarChart data={usageData}>
-          <CartesianGrid strokeDasharray="6 6" stroke="#444" vertical={false} />
-          <XAxis dataKey="date" tickFormatter={formatDate} axisLine={false} tickLine={false} />
-          <YAxis allowDecimals={false} axisLine={false} tickLine={false}/>
-          <Tooltip />
-          {usageData.length > 0 &&
-            apiKeys.map(apiKey => apiKey.name).map((key, idx) => (
-              <Bar key={key} dataKey={key} stackId="usage" fill={getColor(idx)} />
-            ))}
-        </BarChart>
-      </ResponsiveContainer>
+      <h3 style={{"margin-bottom": "10px"}}>Requests</h3>
+      <div className='col' style={{ pointerEvents: loading ? 'none' : 'auto', opacity: loading ? 0.5 : 1 }}>
+        <ResponsiveContainer>
+          <BarChart data={usageData}>
+            <CartesianGrid strokeDasharray="6 6" stroke="#444" vertical={false} />
+            <XAxis dataKey="date" tickFormatter={formatDate} axisLine={false} tickLine={false} />
+            <YAxis allowDecimals={false} axisLine={false} tickLine={false}/>
+            <Tooltip />
+            {usageData.length > 0 &&
+              apiKeys.map(apiKey => apiKey.name).map((key, idx) => (
+                <Bar key={key} dataKey={key} stackId="usage" fill={getColor(idx)} />
+              ))}
+          </BarChart>
+        </ResponsiveContainer>
+        <div className='row'>
+          <h3 className='pie-title'>Total</h3>
+          <ResponsiveContainer width={200}>
+            <PieChart>
+              <Tooltip />
+              <Pie data={usageTotals} outerRadius="100%" innerRadius="75%">
+                {usageTotals.map((entry, idx) => (
+                  <Cell key={`cell-${idx}`} fill={getColor(idx)} />
+                ))}
+              </Pie>
+              <Legend />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
 
-      <h3>Transfers</h3>
-      <ResponsiveContainer style={{ pointerEvents: loading ? 'none' : 'auto', opacity: loading ? 0.5 : 1 }}>
-        <BarChart data={txData}>
-          <CartesianGrid strokeDasharray="6 6" stroke="#444" vertical={false} />
-          <XAxis dataKey="date" tickFormatter={formatDate} axisLine={false} tickLine={false} />
-          <YAxis tickFormatter={formatCurrency} axisLine={false} tickLine={false} />
-          <Tooltip formatter={(value) => `$${Number(value).toLocaleString(undefined, { minimumFractionDigits: 2 })}`}/>
-          {txData.length > 0 &&
-            apiKeys.map(apiKey => apiKey.name).map((key, idx) => (
-              <Bar key={key} dataKey={key} stackId="tx" fill={getColor(idx)} name={key} />
-            ))}
-        </BarChart>
-      </ResponsiveContainer>
+      <h3 style={{"margin-bottom": "10px"}}>Transfers</h3>
+      <div className='col' style={{ pointerEvents: loading ? 'none' : 'auto', opacity: loading ? 0.5 : 1 }}>
+        <ResponsiveContainer>
+          <BarChart data={txData}>
+            <CartesianGrid strokeDasharray="6 6" stroke="#444" vertical={false} />
+            <XAxis dataKey="date" tickFormatter={formatDate} axisLine={false} tickLine={false} />
+            <YAxis tickFormatter={formatCurrency} axisLine={false} tickLine={false} />
+            <Tooltip formatter={(value) => `$${Number(value).toLocaleString(undefined, { minimumFractionDigits: 2 })}`}/>
+            {txData.length > 0 &&
+              apiKeys.map(apiKey => apiKey.name).map((key, idx) => (
+                <Bar key={key} dataKey={key} stackId="tx" fill={getColor(idx)} name={key} />
+              ))}
+          </BarChart>
+        </ResponsiveContainer>
+        <div className='row'>
+          <h3 className='pie-title'>Total</h3>
+          <ResponsiveContainer width={200}>
+            <PieChart>
+              <Tooltip formatter={(value) => `$${Number(value).toLocaleString(undefined, { minimumFractionDigits: 2 })}`}/>
+              <Pie data={txTotals} outerRadius="100%" innerRadius="75%">
+                {txTotals.map((entry, idx) => (
+                  <Cell key={`cell-${idx}`} fill={getColor(idx)} />
+                ))}
+              </Pie>
+              <Legend />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
     </div>
   );
 };

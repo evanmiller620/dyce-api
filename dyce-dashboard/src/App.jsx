@@ -19,7 +19,7 @@ function App() {
             <Routes>
               <Route path='/register' element={<Register />} />
               <Route path='/verify' element={<Verify />} />
-              <Route path='/dashboard' element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+              <Route path='/dashboard/*' element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
               <Route path='*' element={<Navigate to="/dashboard" />} />
             </Routes>
           </AuthProvider>

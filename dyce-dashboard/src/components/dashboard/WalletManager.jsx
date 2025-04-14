@@ -4,10 +4,11 @@ import Refresh from "@/assets/icons/refresh.svg";
 import { WalletPopup } from './WalletPopup';
 import { useAPIClient } from '../DyceApi';
 
-export const WalletManager = ({ wallets, setWallets }) => {
+export const WalletManager = () => {
   const [showPopup, setShowPopup] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [wallets, setWallets] = useState([]);
   const api = useAPIClient();
 
   async function getWallets() {
