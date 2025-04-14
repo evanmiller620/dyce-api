@@ -227,3 +227,24 @@ function animate() {
 }
 
 animate();
+
+
+
+function onWindowResize() {
+    const aspectRatio = screen.width / screen.height;
+    const heightScale = window.innerHeight / screen.height;
+    const widthScale = window.innerWidth / screen.width;
+    const frustumSize = 4;
+
+    camera.left = -frustumSize * aspectRatio / 2 * widthScale;
+    camera.right = frustumSize * aspectRatio / 2 * widthScale;
+    camera.top = frustumSize / 2 * heightScale;
+    camera.bottom = -frustumSize / 2 * heightScale;
+    camera.updateProjectionMatrix();
+
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
+}
+
+onWindowResize();
+window.addEventListener('resize', onWindowResize);
