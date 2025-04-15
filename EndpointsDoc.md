@@ -1,6 +1,4 @@
-Endpoints:
-
-DASHBOARD-KEYS
+DASHBOARD-KEYS-ENDPOINTS:
 generate-api-key
 
 get-api-keys
@@ -13,7 +11,7 @@ set-wallet
 
 get-wallet
 
-DASHBOARD-LOGIN
+DASHBOARD-LOGIN-ENDPOINTS:
 login
 
 register
@@ -26,16 +24,20 @@ logout
 
 auth-check
 
-DASHBOARD-WALLETS
+DASHBOARD-WALLETS-ENDPOINTS:
 add-wallet
 
 get-wallets
 
 remove-wallet
 
-PAYMENTS
+PAYMENTS-ENDPOINTS:
 get-wallet-address
 
 approve-spending
 
 request-payment
+
+STAT-ENDPOINTS:
+get-usage-history
+get-tx-history
