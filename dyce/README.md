@@ -11,33 +11,9 @@ This project aims to revolutionize the way users pay for online services by intr
 npm install dyce
 ```
 
-## Usage
-```js
-import Dyce from "dyce"
-
-const dyce = new Dyce(process.env['DYCE_API_KEY']);
-
-const userId = "user_123"
-const amount = 10
-
-// Get payment from user wallet (with approval)
-const success = dyce.transferTokens(amount);
-if (success) console.log("Executed payment!");
-else console.error("Failed to execute payment!");
-
-// Approve amount to be taken from user's wallet
-const success = dyce.approveSpending(userId, amount);
-if (success) console.log("Approved spending!");
-else console.error("Failed to approve spending!");
-
-// Get payment from user wallet (without approval)
-const success = dyce.requestPayment(userId, amount);
-if (success) console.log("Executed payment!");
-else console.error("Failed to execute payment!");
-```
-
 # Dashboard API Documentation
 
+Requests will be sent to AWS API Gateway where they will be handled by serverless lambda functions. This gateway will require the use of an API key which can be acquired by registering for one in the Dyce Dashboard.
 All requests require an x-api-key header:
 ```json
 { "x-api-key": string }
@@ -48,7 +24,6 @@ All requests require an x-api-key header:
 ### `get-wallet-address`
 - **Description**: Retrieves the address for a specified wallet.
 - **Method**: `GET`
-- **Request Parameters**: `walletId`
 - **Response**:
 
 On success:
@@ -118,7 +93,27 @@ On failure:
 { "message": "No wallet set for API key" }
 ```
 
+## Usage Example
+```js
+import Dyce from "dyce"
 
-## Maintainers
+const dyce = new Dyce(process.env['DYCE_API_KEY']);
 
-This project is maintained by a dedicated team of two students.
+const userId = "user_123"
+const amount = 10
+
+// Get payment from user wallet (with approval)
+const success = dyce.transferTokens(amount);
+if (success) console.log("Executed payment!");
+else console.error("Failed to execute payment!");
+
+// Approve amount to be taken from user's wallet
+const success = dyce.approveSpending(userId, amount);
+if (success) console.log("Approved spending!");
+else console.error("Failed to approve spending!");
+
+// Get payment from user wallet (without approval)
+const success = dyce.requestPayment(userId, amount);
+if (success) console.log("Executed payment!");
+else console.error("Failed to execute payment!");
+```
