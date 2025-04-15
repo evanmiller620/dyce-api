@@ -7,6 +7,11 @@ This API aims to simplify cryptocurrency payments for businesses and users, prov
 
 ---
 
+## **Why Use Dyce**
+Dyce API solves a challenge in the adoption of cryptocurrency for real-world applications: making payments simple, stable, and developer-accessible. While many crypto payment systems are complex or volatile, Dyce uses USDT stablecoins to provide price stability and easy accounting. By integrating directly with popular wallets like MetaMask and using serverless architecture on AWS, Dyce eliminates infrastructure overhead for businesses while enabling customer transactions. Whether you're building a SaaS platform, an on-demand service, or a decentralized application, Dyce provides the tools to accept crypto payments with ease.
+
+---
+
 ## **Core Features**
 The minimum viable product (MVP) will include the following core features:
 
@@ -19,28 +24,23 @@ The minimum viable product (MVP) will include the following core features:
 ---
 
 ## **Key Endpoints**
-The API will offer several key endpoints, which will be defined in the future once they are created
+The API will offer three key endpoints for use for handling user transactions. These are defined in more depth in the [API documentation](dyce/README.md)
 
 ### **User Management**
-
-### **Transaction Management**
-
-### **Subscription Management**
-
-### **Pay-as-you-go**
+The dyce dashboard will provide a full suite of tools that can be used for viewing transaction history and performance as well as connecting new business wallets and managing existing wallets and keys.
 
 ---
 
-## **Tech Stack**
-- **AWS Lambda** – Serverless functions for running the API.
-- **AWS API Gateway** – Exposes the Lambda functions as REST endpoints.
-- **AWS Cognito** – User authentication and management.
-- **AWS DynamoDB** – Database for transaction and user management.
-- **AWS S3** – Storage for handling file uploads (e.g., receipts or invoices).
-- **MetaMask** – Browser extension for managing Ethereum-based wallets.
-- **Ethers.js** – JavaScript library for interacting with the Ethereum blockchain (for MetaMask transactions).
-- **Node.js** – Backend runtime.
-- **Express.js** – API framework.
+## Tech Stack
+
+| Layer             | Tool/Service                | Purpose                          |
+|------------------|-----------------------------|----------------------------------|
+| Authentication   | AWS Cognito                 | User identity and session mgmt   |
+| Backend Logic     | AWS Lambda + Node.js        | Serverless function execution    |
+| API Gateway      | AWS API Gateway             | REST API endpoint management     |
+| Data Storage     | AWS DynamoDB                | Serverless NoSQL database        |
+| Wallet Handling  | MetaMask + Ethers.js        | Blockchain wallet integration    |
+| Framework        | Express.js                  | Web framework for routing logic  |
 
 ---
 
@@ -48,8 +48,8 @@ The API will offer several key endpoints, which will be defined in the future on
 
 ### **1. Clone the Repository**
 ```bash
-git clone https://github.com/your-repo/crypto-payment-api.git
-cd crypto-payment-api
+git clone https://github.com/your-username/dyce-api.git
+cd dyce-api
 ```
 
 ### **2. Install Dependencies**
@@ -60,8 +60,33 @@ npm install
 ### **3. Environment Configuration**
 Create a `.env` file with your credentials and configuration:
 ```env
-COINBASE_API_KEY=your-coinbase-api-key
-METAMASK_API_KEY=your-metamask-api-key
-DATABASE_URL=your-database-url
-JWT_SECRET=your-jwt-secret
+AWS_REGION=your-region
+PORT=your-dev-port
+AWS_ACCESS_KEY_ID=your-aws-access-key
+AWS_SECRET_ACCESS_KEY=your-aws-secret-access-key
+COGNITO_USER_POOL_ID=your-cognito-user-pool-id
+COGNITO_CLIENT_ID=your-client-id
+ETHERSCAN_KEY=your-etherscan-key
 ```
+### **4. Start the Server**
+```bash
+npm start
+```
+
+---
+
+## Contributing
+
+We welcome contributions!
+
+- Fork the repo
+- Create a feature branch (`git checkout -b feature/my-feature`)
+- Commit your changes (`git commit -m 'Add feature'`)
+- Push to the branch (`git push origin feature/my-feature`)
+- Open a Pull Request and we shall review it and go from there
+
+---
+
+## License
+
+This project is licensed under the [MIT License](LICENSE). 
