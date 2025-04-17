@@ -1,6 +1,6 @@
 import { ethers } from 'ethers'
 
-import { getKey, getUserById, getOrAddClientUser, addClientWallet, addClientKeyIfNotExists, getClientWallets, updateUseCount, updateTxAmount } from './dynamo-functions.js';
+import { getKey, getUserById, getOrAddClientUser, addClientWallet, addClientKeyIfNotExists, getClientWallets, updateUseCount, updateTxAmount, updateFeeAmount } from './dynamo-functions.js';
 import { EtherscanProvider } from 'ethers';
 import { badRequestResponse, notFoundResponse, successResponse, unauthorizedResponse } from './responses.js';
 import dotenv from "dotenv";
@@ -76,16 +76,17 @@ export const requestPayment = async (event) => {
         return badRequestResponse("Insufficient spending limit");
 
     var remainingTransferAmount = amount;
+    var totalFees = 0;
     for (const wallet in walletAllowances) {
         if (!remainingTransferAmount) break;
         const transferAmount = Math.min(walletAllowances[wallet], remainingTransferAmount);
-        const txHash = await transfer(wallet, businessWallet.address, businessWallet.key, transferAmount);
+        totalFees += await transfer(wallet, businessWallet.address, businessWallet.key, transferAmount);
         remainingTransferAmount -= transferAmount;
-        console.log(txHash);
     }
 
     await updateUseCount(apiKey.key);
     await updateTxAmount(apiKey.key, amount);
+    await updateFeeAmount(apiKey.key, totalFees);
     return successResponse({ message: "Processed payment successfully" });
 };
 
@@ -147,6 +148,6 @@ const transfer = async (srcAddress, destAddress, privateKey, amount) => {
         throw new Error(`Insufficient balance: ${srcBalance} available but ${amount} required.`);
 
     const tx = await contract.transferFrom(srcAddress, destAddress, ethers.parseUnits(amount.toString(), decimals));
-    await tx.wait();
-    return tx.hash;
+    const receipt = await tx.wait();
+    return parseFloat(ethers.formatEther(receipt.gasUsed * receipt.gasPrice));
 }
