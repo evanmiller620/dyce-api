@@ -3,7 +3,8 @@ import { connectWallet, approveLimit, getWalletAddress, transferTokens } from ".
 class Dyce {
   constructor(apiKey) {
     this.apiKey = apiKey;
-    this.baseURL = "http://localhost:8080";
+    this.baseURL = "https://0fxllf5l0m.execute-api.us-east-1.amazonaws.com/main/";
+    
     try {
       connectWallet();
       this.connected = true;
