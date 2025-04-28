@@ -9,10 +9,12 @@ import Profile from "@/assets/icons/profile.svg";
 import Sidebar from './Sidebar'
 import { Route, Routes, Navigate } from 'react-router-dom'
 import { KeyUsage } from './KeyUsage'
+import { WalletHistory } from './WalletHistory'
 
 export const Dashboard = () => {
   const [showMenu, setShowMenu] = useState(false);
   const [apiKey, setApiKey] = useState();
+  const [wallet, setWallet] = useState();
 
   return (
     <div className='db-wrapper'>
@@ -34,7 +36,7 @@ export const Dashboard = () => {
           <Routes>
             <Route path="" element={<Navigate to="keys" replace />} />
             <Route path="/keys" element={<><KeyManager apiKey={apiKey} setApiKey={setApiKey} /><KeyUsage apiKey={apiKey} /></>} />
-            <Route path="/wallets" element={<WalletManager />} />
+            <Route path="/wallets" element={<><WalletManager wallet={wallet} setWallet={setWallet} /><WalletHistory walletAddress={wallet} /></>} />
             <Route path="/usage" element={<UsageManager />} />
           </Routes>
         </div>

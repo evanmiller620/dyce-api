@@ -1,150 +1,90 @@
 import React, { useState, useEffect } from 'react';
-import { useAPIClient } from '../DyceApi';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import Refresh from "@/assets/icons/refresh.svg";
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
+import { DatePicker } from './DatePicker';
 
-export const KeyHistory = ({ apiKey }) => {
-  const [usageData, setUsageData] = useState([]);
-  const [txData, setTxData] = useState([]);
+// Helper to format dates nicely
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+};
+
+// Helper to format ETH balance
+const formatEth = (value) => {
+  return parseFloat(value).toFixed(4) + ' ETH';
+};
+
+export const WalletHistory = ({ walletAddress }) => {
+  const [balanceData, setBalanceData] = useState([]);
   const [loading, setLoading] = useState(true);
-  const api = useAPIClient();
+  const [error, setError] = useState(null);
+  const [range, setRange] = useState([
+    {
+      startDate: new Date(new Date().setDate(new Date().getDate() - 14)),
+      endDate: new Date(),
+      key: 'selection'
+    }
+  ]);
+  const [showCalendar, setShowCalendar] = useState(false);
 
   useEffect(() => {
-    if (apiKey) getHistory();
-  }, [apiKey]);
+    if (!walletAddress) return;
 
-  async function getUsageHistory(keyName) {
-    try {
-      const res = await api.getUsageHistory(keyName);
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message);
-      return data.useCounts;
-    } catch (error) {
-      console.error("Failed to get usage history: ", error);
-    }
-  }
+    const fetchBalanceHistory = async () => {
+      try {
+        setLoading(true);
+        setError(null);
 
-  async function getTxHistory(keyName) {
-    try {
-      const res = await api.getTxHistory(keyName);
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message);
-      return data.txAmounts;
-    } catch (error) {
-      console.error("Failed to get usage history: ", error);
-    }
-  }
+        // Example API endpoint (you'll need to use your real provider)
+        // const response = await fetch(`https://api.example.com/wallet/${walletAddress}/balance-history`);
+        // if (!response.ok) throw new Error('Failed to fetch');
 
-  async function getHistory() {
-    try {
-      setLoading(true);
-      let usageMap = {};
-      let txMap = {};
+        // const data = await response.json();
+        // Expected format: [{ date: '2025-04-01', balance: 0.5 }, ...]
+        const data = [
+          {date: '2025-4-20', balance: 0},
+          {date: '2025-4-22', balance: 0.3},
+          {date: '2025-4-24', balance: 0.2},
+          {date: '2025-4-26', balance: 0.5},
+          {date: '2025-4-28', balance: 0.8}
+        ];
 
-      const keyName = apiKey;
-      const useCounts = await getUsageHistory(keyName);
-      for (const [date, count] of Object.entries(useCounts)) {
-        if (!usageMap[date]) usageMap[date] = {};
-        usageMap[date][keyName] = count;
+        // Sort by date ascending just in case
+        data.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+        setBalanceData(data);
+      } catch (err) {
+        console.error(err);
+        setError('Unable to load balance history.');
+      } finally {
+        setLoading(false);
       }
-      const txAmounts = await getTxHistory(keyName);
-      for (const [date, amount] of Object.entries(txAmounts)) {
-        if (!txMap[date]) txMap[date] = {};
-        txMap[date][keyName] = amount;
-      }
-      
-      const getLastNDays = (n) => {
-        const dates = [];
-        for (let i = n - 1; i >= 0; i--) {
-          const d = new Date();
-          d.setDate(d.getDate() - i);
-          dates.push(d.toISOString().split('T')[0]);
-        }
-        return dates;
-      };
+    };
 
-      const dates = getLastNDays(10);
-      for (const date of dates) {
-        if (!usageMap[date]) usageMap[date] = {};
-        if (!txMap[date]) txMap[date] = {};
-      }
-
-      var usageList = Object.entries(usageMap).map(([date, values]) => ({ date, ...values }));
-      var txList = Object.entries(txMap).map(([date, values]) => ({ date, ...values }));
-      usageList = usageList.filter(item => dates.includes(item.date));
-      txList = txList.filter(item => dates.includes(item.date));
-      usageList.sort((a, b) => new Date(a.date) - new Date(b.date));
-      txList.sort((a, b) => new Date(a.date) - new Date(b.date));
-      setUsageData(usageList);
-      setTxData(txList);
-      setLoading(false);
-    } catch (error) {
-      console.error("Request failed: ", error);
-    }
-  }
-
-  // Format date as "Apr 5"
-  const formatDate = (dateString) => {
-    const date = new Date(dateString + 'T12:00:00');
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  };
-
-  // Format USDT amount as "$1.50K"
-  const formatCurrency = (num) => {
-    if (num === 0) return '$0';
-    if (Math.abs(num) >= 100_000_000)
-      return `$${(num / 1_000_000).toFixed(0)}M`;
-    if (Math.abs(num) >= 1_000_000)
-      return `$${(num / 1_000_000).toFixed(1)}M`;
-    if (Math.abs(num) >= 100_000)
-      return `$${(num / 1_000).toFixed(0)}K`;
-    if (Math.abs(num) >= 1_000)
-      return `$${(num / 1_000).toFixed(1)}K`;
-    if (Math.abs(num) >= 100)
-      return `$${Number(num).toFixed(0)}`;
-    return `$${Number(num).toFixed(2)}`;
-  }
+    fetchBalanceHistory();
+  }, [walletAddress]);
 
   return (
-    <div className='manager usage-wrapper'>
+    <div className="manager key-usage-wrapper">
       <div className='header-container'>
-        <h1>Usage</h1>
+        <h1>History</h1>
+        <DatePicker range={range} setRange={setRange} show={showCalendar} setShow={setShowCalendar} />
         <button className="refresh" onClick={() => getHistory()} disabled={loading}>
           <img src={Refresh} alt="X" height="24" />
         </button>
       </div>
 
-      <h3>Requests</h3>
-      <ResponsiveContainer style={{ pointerEvents: loading ? 'none' : 'auto', opacity: loading ? 0.5 : 1 }}>
-        <BarChart data={usageData}>
-          <CartesianGrid strokeDasharray="6 6" stroke="#444" vertical={false} />
-          <XAxis dataKey="date" tickFormatter={formatDate} axisLine={false} tickLine={false} />
-          <YAxis allowDecimals={false} axisLine={false} tickLine={false}/>
-          <Tooltip />
-          {usageData.length > 0 &&
-            <Bar key={apiKey} dataKey={apiKey} stackId="usage" fill={getColor(1)} />
-          }
-        </BarChart>
-      </ResponsiveContainer>
-
-      <h3>Transfers</h3>
-      <ResponsiveContainer style={{ pointerEvents: loading ? 'none' : 'auto', opacity: loading ? 0.5 : 1 }}>
-        <BarChart data={txData}>
-          <CartesianGrid strokeDasharray="6 6" stroke="#444" vertical={false} />
-          <XAxis dataKey="date" tickFormatter={formatDate} axisLine={false} tickLine={false} />
-          <YAxis tickFormatter={formatCurrency} axisLine={false} tickLine={false} />
-          <Tooltip formatter={(value) => `$${Number(value).toLocaleString(undefined, { minimumFractionDigits: 2 })}`}/>
-          {txData.length > 0 &&
-            <Bar key={apiKey} dataKey={apiKey} stackId="tx" fill={getColor(1)} name={apiKey} />
-          }
-        </BarChart>
-      </ResponsiveContainer>
+      <div className='body-container'>
+        <ResponsiveContainer width="100%" height={300}>
+          <LineChart data={balanceData}>
+            <CartesianGrid strokeDasharray="6 6" stroke="#ccc" />
+            <XAxis dataKey="date" tickFormatter={formatDate} />
+            <YAxis tickFormatter={(value) => `${value} ETH`} />
+            <Tooltip formatter={(value) => formatEth(value)} labelFormatter={formatDate} />
+            <Line type="monotone" dataKey="balance" stroke="#6c5ce7" strokeWidth={2} dot={false} />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
-};
-
-// Color palette generator
-const getColor = (i) => {
-  const palette = ['#a560f2', '#6c5ce7', '#55efc4', '#ffeaa7', '#ff7675', '#fab1a0'];
-  return palette[i % palette.length];
 };

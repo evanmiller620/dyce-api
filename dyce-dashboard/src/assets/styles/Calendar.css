@@ -1,0 +1,39 @@
+.calendar-wrapper button {
+    margin: 0;
+}
+
+.calendar-wrapper button:hover {
+    filter: brightness(1);
+  }
+  
+.calendar-wrapper button:active {
+    filter: brightness(1);
+}
+
+.rdrDateDisplayWrapper {
+    display: none;
+    background: none;
+}
+
+.rdrDateInput {
+    border: none;
+}
+
+.calendar-wrapper {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    z-index: 1;
+}
+
+.date-button {
+    background: none;
+    border: 1px solid #ccc;
+    border-radius: 25px;
+}
+
+.calendar-wrapper .rdrCalendarWrapper {
+    background-color: #f4f4f4;
+    border-radius: 8px;
+    overflow: hidden;
+}

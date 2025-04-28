@@ -1,93 +1,84 @@
 import React, { useState, useEffect } from 'react';
 import { useAPIClient } from '../DyceApi';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import Refresh from "@/assets/icons/refresh.svg";
+import { BarGraph } from './Graphs';
+import 'react-date-range/dist/styles.css';
+import 'react-date-range/dist/theme/default.css';
+import '@/assets/styles/Calendar.css'
+import { DatePicker } from './DatePicker';
 
 export const KeyUsage = ({ apiKey }) => {
   const [usageData, setUsageData] = useState([]);
   const [txData, setTxData] = useState([]);
+  const [feeData, setFeeData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [ethUsdPrice, setEthUsdPrice] = useState();
+  const [range, setRange] = useState([
+    {
+      startDate: new Date(new Date().setDate(new Date().getDate() - 14)),
+      endDate: new Date(),
+      key: 'selection'
+    }
+  ]);
+  const [showCalendar, setShowCalendar] = useState(false);
   const api = useAPIClient();
 
   useEffect(() => {
     if (apiKey) getHistory();
   }, [apiKey]);
 
-  async function getUsageHistory(keyName) {
-    try {
-      const res = await api.getUsageHistory(keyName);
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message);
-      return data.useCounts;
-    } catch (error) {
-      console.error("Failed to get usage history: ", error);
-    }
-  }
+  useEffect(() => {
+    if (!showCalendar && apiKey) getHistory();
+  }, [showCalendar]);
 
-  async function getTxHistory(keyName) {
-    try {
-      const res = await api.getTxHistory(keyName);
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message);
-      return data.txAmounts;
-    } catch (error) {
-      console.error("Failed to get usage history: ", error);
+  async function getHistoryData(getHistory, dates, setData, keyName) {
+    let dataMap = {};
+    const history = await getHistory(keyName);
+    for (const [dateStr, value] of Object.entries(history)) {
+      const date = new Date(dateStr + "T00:00:00");
+      const startDate = new Date(range[0].startDate);
+      startDate.setHours(0, 0, 0, 0);
+      const endDate = new Date(range[0].endDate);
+      endDate.setHours(23, 59, 59, 999);
+      if (date > endDate || date < startDate) continue;
+      dataMap[dateStr] = {};
+      dataMap[dateStr][keyName] = value;
     }
+    for (const date of dates) {
+      if (!dataMap[date]) dataMap[date] = 0;
+    }
+    var dataList = Object.entries(dataMap).map(
+      ([date, values]) => ({ date, ...values })
+    );
+    dataList.sort((a, b) => new Date(a.date) - new Date(b.date));
+    setData(dataList);
   }
 
   async function getHistory() {
     try {
       setLoading(true);
-      let usageMap = {};
-      let txMap = {};
 
-      const keyName = apiKey;
-      const useCounts = await getUsageHistory(keyName);
-      for (const [date, count] of Object.entries(useCounts)) {
-        if (!usageMap[date]) usageMap[date] = {};
-        usageMap[date][keyName] = count;
-      }
-      const txAmounts = await getTxHistory(keyName);
-      for (const [date, amount] of Object.entries(txAmounts)) {
-        if (!txMap[date]) txMap[date] = {};
-        txMap[date][keyName] = amount;
-      }
-      
-      const getLastNDays = (n) => {
+      const getDaysBetween = (startDate, endDate) => {
         const dates = [];
-        for (let i = n - 1; i >= 0; i--) {
-          const d = new Date();
-          d.setDate(d.getDate() - i);
-          dates.push(d.toISOString().split('T')[0]);
+        let currentDate = new Date(startDate);
+        while (currentDate <= endDate) {
+          dates.push(currentDate.toISOString().split('T')[0]);
+          currentDate.setDate(currentDate.getDate() + 1); // Move to the next day
         }
         return dates;
       };
 
-      const dates = getLastNDays(10);
-      for (const date of dates) {
-        if (!usageMap[date]) usageMap[date] = {};
-        if (!txMap[date]) txMap[date] = {};
-      }
-
-      var usageList = Object.entries(usageMap).map(([date, values]) => ({ date, ...values }));
-      var txList = Object.entries(txMap).map(([date, values]) => ({ date, ...values }));
-      usageList = usageList.filter(item => dates.includes(item.date));
-      txList = txList.filter(item => dates.includes(item.date));
-      usageList.sort((a, b) => new Date(a.date) - new Date(b.date));
-      txList.sort((a, b) => new Date(a.date) - new Date(b.date));
-      setUsageData(usageList);
-      setTxData(txList);
+      const { startDate, endDate } = range[0];
+      const dates = getDaysBetween(startDate, endDate);
+      await getHistoryData((key) => api.getUsageHistory(key), dates, setUsageData, apiKey);
+      await getHistoryData((key) => api.getTxHistory(key), dates, setTxData, apiKey);
+      await getHistoryData((key) => api.getFeeHistory(key), dates, setFeeData, apiKey);
+      setEthUsdPrice(await getEthUsdPrice());
       setLoading(false);
     } catch (error) {
       console.error("Request failed: ", error);
     }
   }
-
-  // Format date as "Apr 5"
-  const formatDate = (dateString) => {
-    const date = new Date(dateString + 'T12:00:00');
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  };
 
   // Format USDT amount as "$1.50K"
   const formatCurrency = (num) => {
@@ -105,46 +96,53 @@ export const KeyUsage = ({ apiKey }) => {
     return `$${Number(num).toFixed(2)}`;
   }
 
+  const getEthUsdPrice = async () => {
+    try {
+      const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd');
+      const data = await response.json();
+      return data.ethereum.usd;
+    } catch {
+      return null;
+    }
+  };
+
+  // Format ETH amount
+  const formatEth = (num) => {
+    if (num === 0) return '0';
+    return num.toExponential(1);
+  }
+
+  const formatEthWithConversion = (num) => {
+    if (num === 0) return '0';
+    return num.toExponential(1) + " ≈ $" + (num * ethUsdPrice).toFixed(2);
+  }
+
   return (
-    <div className='manager key-usage-wrapper'>
+    <div className='manager usage-wrapper'>
       <div className='header-container'>
         <h1>Usage</h1>
+        <DatePicker range={range} setRange={setRange} show={showCalendar} setShow={setShowCalendar} />
         <button className="refresh" onClick={() => getHistory()} disabled={loading}>
           <img src={Refresh} alt="X" height="24" />
         </button>
       </div>
 
-      <h3>Requests</h3>
-      <ResponsiveContainer style={{ pointerEvents: loading ? 'none' : 'auto', opacity: loading ? 0.5 : 1 }}>
-        <BarChart data={usageData}>
-          <CartesianGrid strokeDasharray="6 6" stroke="#444" vertical={false} />
-          <XAxis dataKey="date" tickFormatter={formatDate} axisLine={false} tickLine={false} />
-          <YAxis allowDecimals={false} axisLine={false} tickLine={false}/>
-          <Tooltip />
-          {usageData.length > 0 &&
-            <Bar key={apiKey} dataKey={apiKey} stackId="usage" fill={getColor(1)} />
-          }
-        </BarChart>
-      </ResponsiveContainer>
+      <div className='body-container'>
+        <h3 style={{"marginBottom": "10px"}}>Requests</h3>
+        <div className='col' style={{ pointerEvents: loading ? 'none' : 'auto', opacity: loading ? 0.5 : 1 }}>
+          <BarGraph data={usageData} apiKeys={[{name: apiKey}]} allowDecimals={false} />
+        </div>
 
-      <h3>Transfers</h3>
-      <ResponsiveContainer style={{ pointerEvents: loading ? 'none' : 'auto', opacity: loading ? 0.5 : 1 }}>
-        <BarChart data={txData}>
-          <CartesianGrid strokeDasharray="6 6" stroke="#444" vertical={false} />
-          <XAxis dataKey="date" tickFormatter={formatDate} axisLine={false} tickLine={false} />
-          <YAxis tickFormatter={formatCurrency} axisLine={false} tickLine={false} />
-          <Tooltip formatter={(value) => `$${Number(value).toLocaleString(undefined, { minimumFractionDigits: 2 })}`}/>
-          {txData.length > 0 &&
-            <Bar key={apiKey} dataKey={apiKey} stackId="tx" fill={getColor(1)} name={apiKey} />
-          }
-        </BarChart>
-      </ResponsiveContainer>
+        <h3 style={{"marginBottom": "10px"}}>Transfers (USDT)</h3>
+        <div className='col' style={{ pointerEvents: loading ? 'none' : 'auto', opacity: loading ? 0.5 : 1 }}>
+          <BarGraph data={txData} apiKeys={[{name: apiKey}]} formatter={formatCurrency} allowDecimals={true} />
+        </div>
+          
+        <h3 style={{"marginBottom": "10px"}}>Transfer Fees (ETH)</h3>
+        <div className='col' style={{ pointerEvents: loading ? 'none' : 'auto', opacity: loading ? 0.5 : 1 }}>
+          <BarGraph data={feeData} apiKeys={[{name: apiKey}]} formatter={formatEth} allowDecimals={true} tooltipFormatter={formatEthWithConversion} />
+        </div>
+      </div>
     </div>
   );
-};
-
-// Color palette generator
-const getColor = (i) => {
-  const palette = ['#a560f2', '#6c5ce7', '#55efc4', '#ffeaa7', '#ff7675', '#fab1a0'];
-  return palette[i % palette.length];
 };

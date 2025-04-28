@@ -18,7 +18,7 @@ export const KeyManager = ({ apiKey, setApiKey }) => {
       const data = await response.json();
       setApiKeys(data.apiKeys);
       if (!data.apiKeys.some(k => k.name === apiKey))
-        setApiKey(data.apiKeys[0]?.name ?? null);
+        setApiKey(data.apiKeys[0].name);
       await getWallets();
     }
     catch (error) {
@@ -65,10 +65,10 @@ export const KeyManager = ({ apiKey, setApiKey }) => {
         <button onClick={setShowPopup}>+ Create</button>
         {showPopup && <KeyPopup onClose={() => setShowPopup(false)} />}
       </div>
-      {apiKeys.length === 0 ? (
-        <h3>No API keys created yet.</h3>
-      ) : (
-      <div className='table-container'>
+      <div className='table-container body-container'>
+        {apiKeys.length === 0 ? (
+          <h3>No API keys created yet.</h3>
+        ) : (
         <table>
           <colgroup>
             <col style={{ width: "auto" }} />
@@ -106,8 +106,8 @@ export const KeyManager = ({ apiKey, setApiKey }) => {
             ))}
           </tbody>
         </table>
+        )}
       </div>
-      )}
     </div>
   )
 }

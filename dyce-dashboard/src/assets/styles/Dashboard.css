@@ -1,5 +1,5 @@
 .db-wrapper {
-    background-color: #ccc;
+    background-color: #ddd;
     display: flex;
     flex-direction: row;
     flex: 1;
@@ -68,14 +68,17 @@ button {
     margin: 0;
     background-color: white;
     border-radius: 20px 0 0 0;
+    height: calc(100vh - 50px);
 }
 
 .manager {
-    padding: 20px;
+    /* padding: 20px; */
     display: flex;
     flex-direction: column;
-    height: calc(100vh - 90px);
+    /* height: fit-content; */
+    height: 100%;
     flex: 1;
+    border-right: 1px solid #ccc;
 }
 
 .usage-wrapper img {
@@ -98,12 +101,24 @@ button {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin: 5px;
     gap: 10px;
+    padding: 15px;
+    margin: 0;
+    border-bottom: 1px solid #ccc;
 }
 
 .header-container h1 {
     margin: 5px;
+}
+
+.header-container select {
+    margin-left: auto;
+}
+
+.body-container {
+    overflow-y: scroll;
+    overflow-x: hidden;
+    padding: 20px;
 }
 
 .table-container {
@@ -206,7 +221,7 @@ option {
     padding: 10px;
 }
 
-.manager input {
+.tester-wrapper input {
     padding: 12px;
     border: 1px solid #ccc;
     border-radius: 5px;
@@ -269,24 +284,25 @@ option {
     height: 40px;
 }
 
+.key-usage-wrapper .refresh img {
+    width: 40px;
+    height: 40px;
+}
+
 .usage-wrapper label {
     margin-left: auto;
     margin-right: -5px;
 }
 
-.usage-wrapper select {
-    width: 100px;
-    font-size: 16px;
-    background-color: #51bfff;
-}
-
 .usage-wrapper .col {
-    flex: 1;
+    display: flex;
+    height: 30vh;
 }
 
 .usage-wrapper .row {
     flex: 1;
     height: 100%;
+    margin-left: 20px;
 }
 
 .usage-wrapper h3 {
