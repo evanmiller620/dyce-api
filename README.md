@@ -75,7 +75,7 @@ npm start
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 We welcome contributions!
 
@@ -87,6 +87,6 @@ We welcome contributions!
 
 ---
 
-## 📄 License
+## License
 
 This project is licensed under the [MIT License](LICENSE). 
