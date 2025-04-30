@@ -1,5 +1,5 @@
 import express from "express";
-import { addWallet, getWallets, removeWallet } from "../functions/dashboard-wallets-functions.js";
+import { addWallet, getWalletHistory, getWallets, removeWallet } from "../functions/dashboard-wallets-functions.js";
 
 const router = express.Router();
 
@@ -16,6 +16,11 @@ router.get("/get-wallets", async (req, res) => {
 
 router.post("/remove-wallet", async (req, res) => {
     const response = await removeWallet({ body: JSON.stringify(req.body), headers: req.headers });
+    res.status(response.statusCode).json(JSON.parse(response.body));
+});
+
+router.post("/get-wallet-history", async (req, res) => {
+    const response = await getWalletHistory({ body: JSON.stringify(req.body), headers: req.headers });
     res.status(response.statusCode).json(JSON.parse(response.body));
 });
 

@@ -4,10 +4,11 @@ import Refresh from "@/assets/icons/refresh.svg";
 import { WalletPopup } from './WalletPopup';
 import { useAPIClient } from '../DyceApi';
 
-export const WalletManager = ({ wallets, setWallets }) => {
+export const WalletManager = ({ wallet, setWallet }) => {
   const [showPopup, setShowPopup] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [wallets, setWallets] = useState([]);
   const api = useAPIClient();
 
   async function getWallets() {
@@ -17,6 +18,8 @@ export const WalletManager = ({ wallets, setWallets }) => {
       if (!response.ok) throw new Error("Failed to fetch wallets");
       const data = await response.json();
       setWallets(data.wallets);
+      if (!data.wallets.some(k => k.address === wallet))
+        setWallet(data.wallets[0].address);
     }
     catch (error) {
       console.error("Request failed: ", error);
@@ -33,7 +36,7 @@ export const WalletManager = ({ wallets, setWallets }) => {
     try {
       const response = await api.deleteWallet(name);
       if (!response.ok) throw new Error("Failed to delete wallet");
-      
+      // if (wallet === name) setWallet(null);
       setWallets(wallets.filter(key => key.name !== name));
     } catch (error) {
       console.error("Request failed: ", error);
@@ -49,10 +52,10 @@ export const WalletManager = ({ wallets, setWallets }) => {
         <button onClick={setShowPopup}>+ Add</button>
         {showPopup && <WalletPopup onClose={() => setShowPopup(false)} />}
       </div>
-      {wallets.length === 0 ? (
-        <h3>No wallets added yet.</h3>
-      ) : (
-      <div className='table-container'>
+      <div className='table-container body-container'>
+        {wallets.length === 0 ? (
+          <h3>No wallets added yet.</h3>
+        ) : (
         <table>
           <colgroup>
             <col style={{ width: "50%" }} />
@@ -74,7 +77,7 @@ export const WalletManager = ({ wallets, setWallets }) => {
           </thead>
           <tbody>
             {wallets.map(({ name, address, balance }) => (
-              <tr key={address}>
+              <tr key={address} className={wallet === address ? 'selected' : ''} onClick={() => setWallet(address)}>
                 <td>{name}</td>
                 <td>{address}</td>
                 <td>{balance}</td>
@@ -87,8 +90,8 @@ export const WalletManager = ({ wallets, setWallets }) => {
             ))}
           </tbody>
         </table>
+        )}
       </div>
-      )}
     </div>
   )
 }

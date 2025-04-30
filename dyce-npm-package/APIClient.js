@@ -37,14 +37,16 @@ class APIClient {
       }
 
       const response = await fetch(`${this.baseURL}/${endpoint}`, options);
-      // console.log(response)
       return response;
     } catch (error) {
-      // console.error("Request failed: ", error);
       throw new Error("Request failed: ", error);
     }
   }
-  // API KEY FUNCTIONS
+
+// ==============================
+// API Key Functions
+// ==============================
+
   async getApiKeys() {
     return this.request('get-api-keys', 'GET');
   }
@@ -57,7 +59,10 @@ class APIClient {
     return this.request('delete-api-key', 'POST', { name });
   }
 
-  // WALLET FUNCTIONS
+// ==============================
+// Wallet Functions
+// ==============================
+
   async getWallet(apiKey) {
     return this.request('get-wallet', 'POST', { key: apiKey });
   }
@@ -78,15 +83,62 @@ class APIClient {
     return this.request('add-wallet', 'POST', { name: name, address: walletAddress, key: walletKey });
   }
 
+// ==============================
+// History Functions
+// ==============================
+
   async getUsageHistory(keyName) {
-    return this.request('get-usage-history', 'POST', { keyName: keyName });
+    try {
+      const res = await this.request('get-usage-history', 'POST', { keyName: keyName });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+      return data.useCounts;
+    } catch (error) {
+      console.error("Failed to get usage history: ", error);
+      return {};
+    }
   }
 
   async getTxHistory(keyName) {
-    return this.request('get-tx-history', 'POST', { keyName: keyName });
+    try {
+      const res = await this.request('get-tx-history', 'POST', { keyName: keyName });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+      return data.txAmounts;
+    } catch (error) {
+      console.error("Failed to get transaction history: ", error);
+      return {};
+    }
   }
 
-  // auth functions
+  async getFeeHistory(keyName) {
+    try {
+      const res = await this.request('get-fee-history', 'POST', { keyName: keyName });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+      return data.feeAmounts;
+    } catch (error) {
+      console.error("Failed to get transaction fee history: ", error);
+      return {};
+    }
+  }
+
+  async getWalletHistory(walletAddress, contractAddress) {
+    try {
+      const res = await this.request('get-wallet-history', 'POST', { walletAddress, contractAddress });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+      return data.balanceHistory;
+    } catch (error) {
+      console.error("Failed to get wallet history: ", error);
+      return [];
+    }
+  }
+
+// ==============================
+// Auth Functions
+// ==============================
+
   async register(credentials) {
     return this.request('register', 'POST', credentials);
   }

@@ -62,6 +62,7 @@ export const createKey = async (key, userId, name, walletName) => {
             wallet: walletName,
             useCounts: {},
             txAmounts: {},
+            feeAmounts: {},
         },
     });
     await dynamo.send(command);
@@ -75,6 +76,33 @@ export const deleteKey = async (key) => {
     });
     await dynamo.send(command);
 }
+
+// Set the wallet name assigned to an API key
+export const setWalletName = async (key, walletName) => {
+    const command = new UpdateCommand({
+        TableName: KEYS_TABLE,
+        Key: { key },
+        UpdateExpression: "SET wallet = :wallet",
+        ExpressionAttributeValues: { ":wallet": walletName },
+    });
+    await dynamo.send(command);
+}
+
+// Get list of a user's API keys
+export const getKeysByUser = async (userId) => {
+    const command = new QueryCommand({
+        TableName: KEYS_TABLE,
+        IndexName: "userId-index",
+        KeyConditionExpression: "userId = :userId",
+        ExpressionAttributeValues: { ":userId": userId },
+    });
+    const { Items } = await dynamo.send(command);
+    return Items.length ? Items : [];
+}
+
+// ==============================
+// History Tracking
+// ==============================
 
 // Increment the use count of an API key for the day
 export const updateUseCount = async (key) => {
@@ -124,28 +152,29 @@ export const getTxAmounts = async (key) => {
     return response.Item?.txAmounts || {};
 };
 
-// Set the wallet name assigned to an API key
-export const setWalletName = async (key, walletName) => {
+// Add transfer fee amount to API key history for the day
+export const updateFeeAmount = async (key, amount) => {
+    const date = new Date().toISOString().split('T')[0];
     const command = new UpdateCommand({
         TableName: KEYS_TABLE,
-        Key: { key },
-        UpdateExpression: "SET wallet = :wallet",
-        ExpressionAttributeValues: { ":wallet": walletName },
+        Key: { key: key },
+        UpdateExpression: "ADD feeAmounts.#date :feeAmount",
+        ExpressionAttributeNames: { "#date": date },
+        ExpressionAttributeValues: { ":feeAmount": amount },
     });
     await dynamo.send(command);
 }
 
-// Get list of a user's API keys
-export const getKeysByUser = async (userId) => {
-    const command = new QueryCommand({
+// Get the map of dates to transaction fee amounts for an API key
+export const getFeeAmounts = async (key) => {
+    const command = new GetCommand({
         TableName: KEYS_TABLE,
-        IndexName: "userId-index",
-        KeyConditionExpression: "userId = :userId",
-        ExpressionAttributeValues: { ":userId": userId },
+        Key: { key: key },
+        ProjectionExpression: "feeAmounts"
     });
-    const { Items } = await dynamo.send(command);
-    return Items.length ? Items : [];
-}
+    const response = await dynamo.send(command);
+    return response.Item?.feeAmounts || {};
+};
 
 // ==============================
 // Wallet Management

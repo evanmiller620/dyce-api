@@ -194,7 +194,7 @@ functions:
     events:
       - http:
           path: /get-wallet-address
-          method: POST
+          method: GET
   
   approveSpending:
     handler: src/functions/payments-functions.approveSpending
@@ -208,4 +208,18 @@ functions:
     events:
       - http:
           path: /request-payment
+          method: POST
+
+  getUsageHistory:
+    handler: src/functions/dashboard-stats-functions.getUsageHistory
+    events:
+      - http:
+          path: /get-usage-history
+          method: POST
+  
+  getTxHistory:
+    handler: src/functions/dashboard-stats-functions.getTxHistory
+    events:
+      - http:
+          path: /get-tx-history
           method: POST

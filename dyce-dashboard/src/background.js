@@ -5,7 +5,7 @@ const xSize = 9;
 const ySize = 7;
 const springStrength = 0.00001;
 const restLength = 1;
-const damping = 0;
+const damping = 0.00003;
 const mouseStrength = 0;
 const scrollSpeed = 0;
 const colorLow = new THREE.Color(0x9e9e9e);
@@ -227,3 +227,24 @@ function animate() {
 }
 
 animate();
+
+
+
+function onWindowResize() {
+    const aspectRatio = screen.width / screen.height;
+    const heightScale = window.innerHeight / screen.height;
+    const widthScale = window.innerWidth / screen.width;
+    const frustumSize = 4;
+
+    camera.left = -frustumSize * aspectRatio / 2 * widthScale;
+    camera.right = frustumSize * aspectRatio / 2 * widthScale;
+    camera.top = frustumSize / 2 * heightScale;
+    camera.bottom = -frustumSize / 2 * heightScale;
+    camera.updateProjectionMatrix();
+
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
+}
+
+onWindowResize();
+window.addEventListener('resize', onWindowResize);
