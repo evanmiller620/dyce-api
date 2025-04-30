@@ -123,6 +123,18 @@ class APIClient {
     }
   }
 
+  async getWalletHistory(walletAddress, contractAddress) {
+    try {
+      const res = await this.request('get-wallet-history', 'POST', { walletAddress, contractAddress });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+      return data.balanceHistory;
+    } catch (error) {
+      console.error("Failed to get wallet history: ", error);
+      return [];
+    }
+  }
+
 // ==============================
 // Auth Functions
 // ==============================

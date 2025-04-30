@@ -93,7 +93,6 @@ export const UsageManager = () => {
       await getHistoryData((key) => api.getUsageHistory(key), dates, setUsageData, setUsageTotals, data.apiKeys);
       await getHistoryData((key) => api.getTxHistory(key), dates, setTxData, setTxTotals, data.apiKeys);
       await getHistoryData((key) => api.getFeeHistory(key), dates, setFeeData, setFeeTotals, data.apiKeys);
-      setEthUsdPrice(await getEthUsdPrice());
       setLoading(false);
     } catch (error) {
       console.error("Request failed: ", error);
@@ -117,14 +116,18 @@ export const UsageManager = () => {
   }
 
   const getEthUsdPrice = async () => {
-    try {
-      const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd');
-      const data = await response.json();
-      return data.ethereum.usd;
-    } catch {
-      return null;
-    }
-  };
+      try {
+        const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd');
+        const data = await response.json();
+        setEthUsdPrice(data.ethereum.usd);
+      } catch {
+        setEthUsdPrice(null);
+      }
+    };
+  
+    useEffect(() => {
+      getEthUsdPrice();
+    }, []);
 
   // Format ETH amount
   const formatEth = (num) => {
@@ -134,7 +137,10 @@ export const UsageManager = () => {
 
   const formatEthWithConversion = (num) => {
     if (num === 0) return '0';
-    return num.toExponential(1) + " ≈ $" + (num * ethUsdPrice).toFixed(2);
+    if (ethUsdPrice)
+      return num.toExponential(1) + " ≈ $" + (num * ethUsdPrice).toFixed(2);
+    else
+      return num.toExponential(1);
   }
 
   return (

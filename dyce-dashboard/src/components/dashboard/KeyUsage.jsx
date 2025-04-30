@@ -73,12 +73,25 @@ export const KeyUsage = ({ apiKey }) => {
       await getHistoryData((key) => api.getUsageHistory(key), dates, setUsageData, apiKey);
       await getHistoryData((key) => api.getTxHistory(key), dates, setTxData, apiKey);
       await getHistoryData((key) => api.getFeeHistory(key), dates, setFeeData, apiKey);
-      setEthUsdPrice(await getEthUsdPrice());
       setLoading(false);
     } catch (error) {
       console.error("Request failed: ", error);
     }
   }
+
+  const getEthUsdPrice = async () => {
+    try {
+      const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd');
+      const data = await response.json();
+      setEthUsdPrice(data.ethereum.usd);
+    } catch {
+      setEthUsdPrice(null);
+    }
+  };
+
+  useEffect(() => {
+    getEthUsdPrice();
+  }, []);
 
   // Format USDT amount as "$1.50K"
   const formatCurrency = (num) => {
@@ -96,16 +109,6 @@ export const KeyUsage = ({ apiKey }) => {
     return `$${Number(num).toFixed(2)}`;
   }
 
-  const getEthUsdPrice = async () => {
-    try {
-      const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd');
-      const data = await response.json();
-      return data.ethereum.usd;
-    } catch {
-      return null;
-    }
-  };
-
   // Format ETH amount
   const formatEth = (num) => {
     if (num === 0) return '0';
@@ -114,11 +117,14 @@ export const KeyUsage = ({ apiKey }) => {
 
   const formatEthWithConversion = (num) => {
     if (num === 0) return '0';
-    return num.toExponential(1) + " ≈ $" + (num * ethUsdPrice).toFixed(2);
+    if (ethUsdPrice)
+      return num.toExponential(1) + " ≈ $" + (num * ethUsdPrice).toFixed(2);
+    else
+      return num.toExponential(1);
   }
 
   return (
-    <div className='manager usage-wrapper'>
+    <div className='manager usage-wrapper key-usage-wrapper'>
       <div className='header-container'>
         <h1>Usage</h1>
         <DatePicker range={range} setRange={setRange} show={showCalendar} setShow={setShowCalendar} />

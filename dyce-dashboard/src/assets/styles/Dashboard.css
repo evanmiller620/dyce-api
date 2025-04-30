@@ -116,7 +116,7 @@ button {
 }
 
 .body-container {
-    overflow-y: scroll;
+    overflow-y: auto;
     overflow-x: hidden;
     padding: 20px;
 }
@@ -319,4 +319,10 @@ button.refresh:hover {
 
 button.refresh:active {
     background-color: rgba(0, 0, 0, 0.2);
+}
+
+.balance-wrapper {
+    padding: 20px;
+    padding-left: 0;
+    height: 27vh;
 }
