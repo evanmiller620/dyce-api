@@ -3,6 +3,7 @@ import Refresh from "@/assets/icons/refresh.svg";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { DatePicker } from './DatePicker';
 import { useAPIClient } from '../DyceApi';
+import { CONTRACT_ADDRESS } from '../../../../dyce-npm-package/APIClient';
 
 // Helper to format dates nicely
 const formatDate = (timestamp) => {
@@ -44,7 +45,7 @@ export const WalletHistory = ({ walletAddress }) => {
   const fetchBalanceHistory = async () => {
     try {
       setLoading(true);
-      const tokenData = await api.getWalletHistory(walletAddress, "0x779877A7B0D9E8603169DdbD7836e478b4624789");
+      const tokenData = await api.getWalletHistory(walletAddress, CONTRACT_ADDRESS);
       setTokenBalanceData(tokenData);
       const ethData = await api.getWalletHistory(walletAddress);
       setEthBalanceData(ethData);
@@ -105,7 +106,7 @@ export const WalletHistory = ({ walletAddress }) => {
       </div>
 
       <div className='body-container'>
-        <h3 style={{"marginBottom": "10px"}}>USDT Balance</h3>
+        <h3 style={{"marginBottom": "10px"}}>USDC Balance</h3>
         <div className='balance-wrapper'>
           <ResponsiveContainer>
             <LineChart data={tokenBalanceData}>

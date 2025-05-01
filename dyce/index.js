@@ -1,9 +1,12 @@
 import { connectWallet, approveLimit, getWalletAddress, transferTokens } from "./transact";
 
+const CONTRACT_ADDRESS = "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238";
+
 class Dyce {
   constructor(apiKey) {
     this.apiKey = apiKey;
     this.baseURL = "https://0fxllf5l0m.execute-api.us-east-1.amazonaws.com/main/";
+    // this.baseURL = "http://localhost:8080";
     
     try {
       connectWallet();
@@ -47,7 +50,7 @@ class Dyce {
     const businessWallet = await this.getWalletAddress();
     const clientWallet = await getWalletAddress();
     try {
-      await approveLimit(businessWallet, parseFloat(amount));
+      await approveLimit(businessWallet, parseFloat(amount), CONTRACT_ADDRESS);
     } catch (Error) {
       console.error("Failed to approve spending!");
       console.log(Error);
@@ -71,7 +74,7 @@ class Dyce {
   }
 
   async requestPayment(userId, amount) {
-    const response = await this.request('request-payment', 'POST', { userId: userId, amount: parseFloat(amount) });
+    const response = await this.request('request-payment', 'POST', { userId: userId, amount: parseFloat(amount), contractAddress: CONTRACT_ADDRESS });
     const data = await response.json();
     if (!response.ok) {
       console.error(data.message || "Failed to process payment!");
@@ -84,7 +87,7 @@ class Dyce {
     if (!this.connected) throw new Error("Failed to connect to MetaMask!");
     const businessWallet = await this.getWalletAddress();
     try {
-      await transferTokens(businessWallet, parseFloat(amount));
+      await transferTokens(businessWallet, parseFloat(amount), CONTRACT_ADDRESS);
     } catch (Error) {
       console.error("Failed to transfer tokens!");
       console.log(Error);

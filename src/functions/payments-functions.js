@@ -53,9 +53,9 @@ export const requestPayment = async (event) => {
     const apiKey = await getKey(key);
     if (!apiKey) return unauthorizedResponse("Invalid API key");
 
-    const { userId, amount } = JSON.parse(event.body);
-    if (!userId || !amount)
-        return badRequestResponse("User ID and payment amount required" );
+    const { userId, amount, contractAddress } = JSON.parse(event.body);
+    if (!userId || !amount || !contractAddress)
+        return badRequestResponse("User ID, payment amount, and contract address required" );
 
     const businessUser = await getUserById(apiKey.userId);
     const businessWallet = businessUser.wallets.find(wallet => wallet.name == apiKey.wallet)
@@ -67,7 +67,8 @@ export const requestPayment = async (event) => {
     var total = 0;
     var walletAllowances = {}
     for (const wallet of wallets) {
-        const allowance = await getWalletAllowance(wallet, businessWallet.address);
+        const allowance = await getWalletAllowance(wallet, businessWallet.address, contractAddress);
+        console.log(wallet, "allowance is", allowance, "for contract", contractAddress);
         if (allowance == 0) continue;
         walletAllowances[wallet] = allowance;
         total += allowance;
@@ -80,7 +81,7 @@ export const requestPayment = async (event) => {
     for (const wallet in walletAllowances) {
         if (!remainingTransferAmount) break;
         const transferAmount = Math.min(walletAllowances[wallet], remainingTransferAmount);
-        totalFees += await transfer(wallet, businessWallet.address, businessWallet.key, transferAmount);
+        totalFees += await transfer(wallet, businessWallet.address, businessWallet.key, transferAmount, contractAddress);
         remainingTransferAmount -= transferAmount;
     }
 
@@ -95,8 +96,6 @@ export const requestPayment = async (event) => {
 // ==============================
 
 const provider = new EtherscanProvider("sepolia", process.env.ETHERSCAN_KEY);
-// const CONTRACT_ADDRESS = "0xdAC17F958D2ee523a2206206994597C13D831ec7"; // Ethereum Mainnet USDT
-const CONTRACT_ADDRESS = "0x779877A7B0D9E8603169DdbD7836e478b4624789"; // Sepolia Testnet LINK
 const ERC20_ABI = [
     "function decimals() view returns (uint8)",
     "function balanceOf(address owner) view returns (uint256)",
@@ -105,8 +104,8 @@ const ERC20_ABI = [
     "function allowance(address owner, address spender) view returns (uint256)"
 ]
 
-export const getWalletBalance = async (address) => {
-    const contract = new ethers.Contract(CONTRACT_ADDRESS, ERC20_ABI, provider);
+export const getWalletBalance = async (address, contractAddress) => {
+    const contract = new ethers.Contract(contractAddress, ERC20_ABI, provider);
     const decimals = await contract.decimals();
     try {
         const balance = await contract.balanceOf(address);
@@ -116,8 +115,8 @@ export const getWalletBalance = async (address) => {
     }
 }
 
-export const getWalletAllowance = async (owner, spender) => {
-    const contract = new ethers.Contract(CONTRACT_ADDRESS, ERC20_ABI, provider);
+export const getWalletAllowance = async (owner, spender, contractAddress) => {
+    const contract = new ethers.Contract(contractAddress, ERC20_ABI, provider);
     const decimals = await contract.decimals();
     try {
         const balance = await contract.allowance(owner, spender);
@@ -138,9 +137,9 @@ export const verifyWallet = async (address, privateKey) => {
     }
 }
 
-const transfer = async (srcAddress, destAddress, privateKey, amount) => {
+const transfer = async (srcAddress, destAddress, privateKey, amount, contractAddress) => {
     const wallet = new ethers.Wallet(privateKey, provider);
-    const contract = new ethers.Contract(CONTRACT_ADDRESS, ERC20_ABI, wallet);
+    const contract = new ethers.Contract(contractAddress, ERC20_ABI, wallet);
     const decimals = await contract.decimals();
     const srcBalance = parseFloat(ethers.formatUnits(await contract.balanceOf(srcAddress), decimals));
 

@@ -1,7 +1,6 @@
 import { ethers } from "ethers";
 const window = globalThis;
 
-const CONTRACT_ADDRESS = "0x779877A7B0D9E8603169DdbD7836e478b4624789";
 const ERC20_ABI = [
     "function decimals() view returns (uint8)",
     "function balanceOf(address owner) view returns (uint256)",
@@ -23,10 +22,10 @@ export const getWalletAddress = async () => {
     return address;
 }
 
-export const approveLimit = async (address, amount) => {
+export const approveLimit = async (address, amount, contractAddress) => {
     if (!provider) throw new Error("Must connect to wallet first!");
     const signer = await provider.getSigner();
-    const contract = new ethers.Contract(CONTRACT_ADDRESS, ERC20_ABI, signer);
+    const contract = new ethers.Contract(contractAddress, ERC20_ABI, signer);
     const decimals = await contract.decimals();
     const approveAmount = ethers.parseUnits(amount.toString(), decimals);
     const tx = await contract.approve(address, approveAmount);
@@ -34,10 +33,10 @@ export const approveLimit = async (address, amount) => {
     return tx.hash;
 }
 
-export const transferTokens = async (recipient, amount) => {
+export const transferTokens = async (recipient, amount, contractAddress) => {
     if (!provider) throw new Error("Must connect to wallet first!");
     const signer = await provider.getSigner();
-    const contract = new ethers.Contract(CONTRACT_ADDRESS, ERC20_ABI, signer);
+    const contract = new ethers.Contract(contractAddress, ERC20_ABI, signer);
     const decimals = await contract.decimals();
     const transferAmount = ethers.parseUnits(amount.toString(), decimals);
     const tx = await contract.transfer(recipient, transferAmount);

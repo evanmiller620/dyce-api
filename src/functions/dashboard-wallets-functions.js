@@ -30,11 +30,13 @@ export const getWallets = async (event) => {
     console.log("Received get wallets request");
     const user = await getAuthThenUser(event);
     if (!user) return unauthorizedResponse("Unauthorized");
+    const { contractAddress } = JSON.parse(event.body);
+    if (!contractAddress) return badRequestResponse("Contract address required");
     const formattedWallets = await Promise.all(
         user.wallets?.map(async ({ name, address }) => ({
             name,
             address,
-            balance: await getWalletBalance(address)
+            balance: await getWalletBalance(address, contractAddress)
         }))
     );
     return successResponse({ wallets: formattedWallets });
@@ -61,18 +63,33 @@ export const getWalletHistory = async (event) => {
     console.log("Received get wallets request");
     const { walletAddress, contractAddress } = JSON.parse(event.body);
     if (!walletAddress) return badRequestResponse("Wallet address required");
+    
+    await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before request
+    
+    // Fetch token decimals through etherscan
+    let decimals, url, response, data;
+    if (contractAddress) {
+      url = `https://api-sepolia.etherscan.io/api?module=proxy&action=eth_call&to=${contractAddress}&data=0x313ce567&tag=latest&apikey=${process.env.ETHERSCAN_KEY}`;
+      response = await fetch(url);
+      data = await response.json();
+      if (!data.result) return errorResponse("Failed to get decimals");
+      decimals = parseInt(data.result, 16);
+    } else {
+      decimals = 18;
+    }
+    // await sleep(250);
 
     // Fetch transactions through etherscan
-    let url;
     if (contractAddress) {
         url = `https://api-sepolia.etherscan.io/api?module=account&action=tokentx&contractaddress=${contractAddress}&address=${walletAddress}&startblock=0&endblock=99999999&sort=asc&apikey=${process.env.ETHERSCAN_KEY}`;
     } else {
         url = `https://api-sepolia.etherscan.io/api?module=account&action=txlist&address=${walletAddress}&startblock=0&endblock=99999999&sort=asc&apikey=${process.env.ETHERSCAN_KEY}`;
     }
-    let response = await fetch(url);
-    let data = await response.json();
+    response = await fetch(url);
+    data = await response.json();
     if (data.status !== "1") return errorResponse(data.message);
     const transactions = data.result;
+    // await sleep(250);
 
     // Compute balance over time from transactions
     let balance = BigInt(0);
@@ -92,7 +109,7 @@ export const getWalletHistory = async (event) => {
   
       balanceHistory.push({
         timestamp: Number(tx.timeStamp) * 1000,
-        Balance: Number(balance) / 1e18
+        Balance: Number(balance) / (10 ** decimals)
       });
     }
 
@@ -105,8 +122,9 @@ export const getWalletHistory = async (event) => {
     response = await fetch(url);
     data = await response.json();
     if (data.status !== "1") return errorResponse(data.message);
-    balance = Number(data.result) / 1e18;
+    balance = Number(data.result) / (10 ** decimals);
     balanceHistory.push({ timestamp: Date.now(), Balance: balance });
+    // await sleep(250);
 
     return successResponse({ balanceHistory });
 }

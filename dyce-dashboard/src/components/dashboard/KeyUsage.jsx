@@ -139,7 +139,7 @@ export const KeyUsage = ({ apiKey }) => {
           <BarGraph data={usageData} apiKeys={[{name: apiKey}]} allowDecimals={false} />
         </div>
 
-        <h3 style={{"marginBottom": "10px"}}>Transfers (USDT)</h3>
+        <h3 style={{"marginBottom": "10px"}}>Transfers (USDC)</h3>
         <div className='col' style={{ pointerEvents: loading ? 'none' : 'auto', opacity: loading ? 0.5 : 1 }}>
           <BarGraph data={txData} apiKeys={[{name: apiKey}]} formatter={formatCurrency} allowDecimals={true} />
         </div>

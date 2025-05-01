@@ -1,5 +1,6 @@
 const apiKey = import.meta.env.VITE_API_KEY;
 
+export const CONTRACT_ADDRESS = "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238";
 
 class APIClient {
   constructor(token) {
@@ -72,7 +73,7 @@ class APIClient {
   }
 
   async getWallets() {
-    return this.request('get-wallets', 'GET');
+    return this.request('get-wallets', 'POST', { contractAddress: CONTRACT_ADDRESS });
   }
 
   async deleteWallet(name) {
