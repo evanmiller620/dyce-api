@@ -14,7 +14,7 @@ export const Tester = () => {
   const onApprove = async () => {
     setError("");
     setLoading(true);
-    const success = await dyce.approveSpending(userId, amount);
+    const success = await dyce.permitSpending(userId, amount);
     if (!success) setError("Failed to approve spending!");
     setLoading(false);
   }

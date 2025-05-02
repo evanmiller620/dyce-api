@@ -45,6 +45,35 @@ export const approveSpending = async (event) => {
     return successResponse({ message: "Spending approved successfully" });
 }
 
+export const permitSpending = async (event) => {
+    console.log("Received permit spending request");
+    const key = event.headers["x-api-key"];
+    if (!key) return unauthorizedResponse("API key required");
+
+    const apiKey = await getKey(key);
+    if (!apiKey) return unauthorizedResponse("Invalid API key");
+
+    const businessUser = await getUserById(apiKey.userId);
+    const businessWallet = businessUser.wallets.find(wallet => wallet.name == apiKey.wallet)
+    if (!businessWallet) return notFoundResponse("No wallet set for API key");
+
+    const { userId, permit, contractAddress } = JSON.parse(event.body);
+    if (!userId || !permit || !contractAddress)
+        return badRequestResponse("User ID, permit, and contract address required");
+
+    // Submit permit to blockchain
+    await submitPermit(permit, businessWallet.key, contractAddress);
+
+    // Add wallet address to list of payment sources
+    const { owner } = permit;
+    const user = await getOrAddClientUser(userId);
+    if (!user?.apiKeys?.[apiKey.key]?.wallets?.[owner])
+        await addClientKeyIfNotExists(userId, apiKey.key);
+    await addClientWallet(userId, apiKey.key, owner);
+    await updateUseCount(apiKey.key);
+    return successResponse({ message: "Permit submitted successfully" });
+}
+
 export const requestPayment = async (event) => {
     console.log("Received request payment request");
     const key = event.headers["x-api-key"];
@@ -68,7 +97,6 @@ export const requestPayment = async (event) => {
     var walletAllowances = {}
     for (const wallet of wallets) {
         const allowance = await getWalletAllowance(wallet, businessWallet.address, contractAddress);
-        console.log(wallet, "allowance is", allowance, "for contract", contractAddress);
         if (allowance == 0) continue;
         walletAllowances[wallet] = allowance;
         total += allowance;
@@ -101,7 +129,15 @@ const ERC20_ABI = [
     "function balanceOf(address owner) view returns (uint256)",
     "function transfer(address to, uint256 amount) returns (bool)",
     "function transferFrom(address from, address to, uint256 amount) returns (bool)",
-    "function allowance(address owner, address spender) view returns (uint256)"
+    "function allowance(address owner, address spender) view returns (uint256)",
+    "function name() view returns (string)",
+    "function version() view returns (string)"
+]
+
+const ERC2612_ABI = [
+    "function permit(address owner, address spender, uint value, uint deadline, uint8 v, bytes32 r, bytes32 s) external",
+    "function nonces(address owner) external view returns (uint)",
+    "function DOMAIN_SEPARATOR() external view returns (bytes32)"
 ]
 
 export const getWalletBalance = async (address, contractAddress) => {
@@ -149,4 +185,36 @@ const transfer = async (srcAddress, destAddress, privateKey, amount, contractAdd
     const tx = await contract.transferFrom(srcAddress, destAddress, ethers.parseUnits(amount.toString(), decimals));
     const receipt = await tx.wait();
     return parseFloat(ethers.formatEther(receipt.gasUsed * receipt.gasPrice));
+}
+
+const submitPermit = async (permit, privateKey, contractAddress) => {
+    const { owner, spender, value, deadline, v, r, s, nonce } = permit;
+    const wallet = new ethers.Wallet(privateKey, provider);
+    const contract = new ethers.Contract(contractAddress, [...ERC20_ABI, ...ERC2612_ABI], wallet);
+    const chainId = (await provider.getNetwork()).chainId;
+
+    const domain = {
+        name: await contract.name(),
+        version: await contract.version(),
+        chainId: chainId,
+        verifyingContract: contractAddress
+    };
+    const types = {
+        Permit: [
+            { name: "owner", type: "address" },
+            { name: "spender", type: "address" },
+            { name: "value", type: "uint256" },
+            { name: "nonce", type: "uint256" },
+            { name: "deadline", type: "uint256" },
+        ]
+    };
+    const values = { owner, spender, value, nonce, deadline };
+
+    // Verify signature before submitting permit
+    const signerAddress = ethers.verifyTypedData(domain, types, values, { r, s, v });
+    if (signerAddress.toLowerCase() !== owner.toLowerCase())
+        throw new Error("Invalid signature: signer does not match owner");
+    
+    const tx = await contract.permit(owner, spender, value, deadline, v, r, s);
+    await tx.wait();
 }
