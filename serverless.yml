@@ -131,7 +131,7 @@ functions:
     events:
       - http:
           path: /get-wallets
-          method: GET
+          method: POST
           
   removeWallet:
     handler: src/functions/dashboard-wallets-functions.removeWallet
@@ -222,4 +222,11 @@ functions:
     events:
       - http:
           path: /get-tx-history
+          method: POST
+
+  getFeeHistory:
+    handler: src/functions/dashboard-stats-functions.getFeeHistory
+    events:
+      - http:
+          path: /get-fee-history
           method: POST
