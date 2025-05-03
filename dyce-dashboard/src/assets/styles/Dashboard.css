@@ -266,10 +266,6 @@ option {
     margin: 5px;
 }
 
-.recharts-wrapper {
-    /* margin-left: -10px; */
-}
-
 .key-usage-wrapper {
     width: 45vw;
     flex: none;

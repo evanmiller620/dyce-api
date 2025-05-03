@@ -1,26 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import Refresh from "@/assets/icons/refresh.svg";
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { DatePicker } from './DatePicker';
 import { useAPIClient } from '../DyceApi';
 import { CONTRACT_ADDRESS } from '../../../../dyce-npm-package/APIClient';
-
-// Helper to format dates nicely
-const formatDate = (timestamp) => {
-  const date = new Date(timestamp);
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-};
-
-const formatTimestamp = (timestamp) => {
-  const date = new Date(timestamp);
-  return date.toLocaleString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true
-  });
-};
+import { LineGraph } from './Graphs';
 
 export const WalletHistory = ({ walletAddress }) => {
   const [tokenBalanceData, setTokenBalanceData] = useState([]);
@@ -83,17 +66,20 @@ export const WalletHistory = ({ walletAddress }) => {
       return num.toExponential(1);
   }
 
-  const generateDailyTicks = (start, end) => {
-    const ticks = [];
-    const current = new Date(start);
-  
-    while (current <= end) {
-      ticks.push(current.getTime());
-      current.setDate(current.getDate() + 1);
-    }
-  
-    return ticks;
-  };
+  const formatCurrency = (num) => {
+    if (num === 0) return '$0';
+    if (Math.abs(num) >= 100_000_000)
+      return `$${(num / 1_000_000).toFixed(0)}M`;
+    if (Math.abs(num) >= 1_000_000)
+      return `$${(num / 1_000_000).toFixed(1)}M`;
+    if (Math.abs(num) >= 100_000)
+      return `$${(num / 1_000).toFixed(0)}K`;
+    if (Math.abs(num) >= 1_000)
+      return `$${(num / 1_000).toFixed(1)}K`;
+    if (Math.abs(num) >= 100)
+      return `$${Number(num).toFixed(0)}`;
+    return `$${Number(num).toFixed(2)}`;
+  }
 
   return (
     <div className="manager key-usage-wrapper">
@@ -108,40 +94,12 @@ export const WalletHistory = ({ walletAddress }) => {
       <div className='body-container'>
         <h3 style={{"marginBottom": "10px"}}>USDC Balance</h3>
         <div className='balance-wrapper'>
-          <ResponsiveContainer>
-            <LineChart data={tokenBalanceData}>
-              <CartesianGrid strokeDasharray="6 6" stroke="#ccc" vertical={false} />
-              <XAxis
-                type="number" scale="time" axisLine={false} tickLine={false}
-                domain={domain}
-                dataKey="timestamp" tickFormatter={formatDate} tickMargin={15}
-                allowDataOverflow={true}
-                ticks={generateDailyTicks(domain[0], domain[1])}
-              />
-              <YAxis tickFormatter={(value) => `${value}`} tickMargin={15} />
-              <Tooltip labelFormatter={formatTimestamp} />
-              <Line type="linear" dataKey="Balance" stroke="#34b7eb" strokeWidth={3} dot={false} />
-            </LineChart>
-          </ResponsiveContainer>
+          <LineGraph data={tokenBalanceData} domain={domain} formatter={formatCurrency} />
         </div>
 
         <h3 style={{"marginBottom": "10px"}}>ETH Balance</h3>
         <div className='balance-wrapper'>
-          <ResponsiveContainer>
-            <LineChart data={ethBalanceData}>
-              <CartesianGrid strokeDasharray="6 6" stroke="#ccc" vertical={false} />
-              <XAxis
-                type="number" scale="time" axisLine={false} tickLine={false}
-                domain={domain}
-                dataKey="timestamp" tickFormatter={formatDate} tickMargin={15}
-                allowDataOverflow={true}
-                ticks={generateDailyTicks(domain[0], domain[1])}
-              />
-              <YAxis tickFormatter={(value) => `${value}`} tickMargin={15} />
-              <Tooltip formatter={(value) => formatEthWithConversion(value)} labelFormatter={formatTimestamp} />
-              <Line type="linear" dataKey="Balance" stroke="#34b7eb" strokeWidth={3} dot={false} />
-            </LineChart>
-          </ResponsiveContainer>
+          <LineGraph data={ethBalanceData} domain={domain} tooltipFormatter={formatEthWithConversion} />
         </div>
       </div>
     </div>

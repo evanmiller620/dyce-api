@@ -126,7 +126,7 @@ export const KeyUsage = ({ apiKey }) => {
   return (
     <div className='manager usage-wrapper key-usage-wrapper'>
       <div className='header-container'>
-        <h1>Usage</h1>
+        <h1>History</h1>
         <DatePicker range={range} setRange={setRange} show={showCalendar} setShow={setShowCalendar} />
         <button className="refresh" onClick={() => getHistory()} disabled={loading}>
           <img src={Refresh} alt="X" height="24" />
