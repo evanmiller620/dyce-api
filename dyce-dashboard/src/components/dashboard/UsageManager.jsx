@@ -90,9 +90,11 @@ export const UsageManager = () => {
 
       const { startDate, endDate } = range[0];
       const dates = getDaysBetween(startDate, endDate);
-      await getHistoryData((key) => api.getUsageHistory(key), dates, setUsageData, setUsageTotals, data.apiKeys);
-      await getHistoryData((key) => api.getTxHistory(key), dates, setTxData, setTxTotals, data.apiKeys);
-      await getHistoryData((key) => api.getFeeHistory(key), dates, setFeeData, setFeeTotals, data.apiKeys);
+      await Promise.all([
+        getHistoryData((key) => api.getUsageHistory(key), dates, setUsageData, setUsageTotals, data.apiKeys),
+        getHistoryData((key) => api.getTxHistory(key), dates, setTxData, setTxTotals, data.apiKeys),
+        getHistoryData((key) => api.getFeeHistory(key), dates, setFeeData, setFeeTotals, data.apiKeys),
+      ]);
       setLoading(false);
     } catch (error) {
       console.error("Request failed: ", error);

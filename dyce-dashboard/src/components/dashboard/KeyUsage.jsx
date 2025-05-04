@@ -70,9 +70,11 @@ export const KeyUsage = ({ apiKey }) => {
 
       const { startDate, endDate } = range[0];
       const dates = getDaysBetween(startDate, endDate);
-      await getHistoryData((key) => api.getUsageHistory(key), dates, setUsageData, apiKey);
-      await getHistoryData((key) => api.getTxHistory(key), dates, setTxData, apiKey);
-      await getHistoryData((key) => api.getFeeHistory(key), dates, setFeeData, apiKey);
+      await Promise.all([
+        await getHistoryData((key) => api.getUsageHistory(key), dates, setUsageData, apiKey),
+        await getHistoryData((key) => api.getTxHistory(key), dates, setTxData, apiKey),
+        await getHistoryData((key) => api.getFeeHistory(key), dates, setFeeData, apiKey),
+      ]);
       setLoading(false);
     } catch (error) {
       console.error("Request failed: ", error);

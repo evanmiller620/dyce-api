@@ -28,9 +28,11 @@ export const WalletHistory = ({ walletAddress }) => {
   const fetchBalanceHistory = async () => {
     try {
       setLoading(true);
-      const tokenData = await api.getWalletHistory(walletAddress, CONTRACT_ADDRESS);
+      const [tokenData, ethData] = await Promise.all([
+        api.getWalletHistory(walletAddress, CONTRACT_ADDRESS),
+        api.getWalletHistory(walletAddress)
+      ]);
       setTokenBalanceData(tokenData);
-      const ethData = await api.getWalletHistory(walletAddress);
       setEthBalanceData(ethData);
     } catch (err) {
       console.error(err);
