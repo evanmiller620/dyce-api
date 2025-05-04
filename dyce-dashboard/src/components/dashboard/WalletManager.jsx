@@ -28,7 +28,7 @@ export const WalletManager = ({ wallet, setWallet }) => {
   }
 
   useEffect(() => {
-    getWallets();
+    if (!showPopup) getWallets();
   }, [showPopup]);
 
   const deleteWallet = async (name) => {

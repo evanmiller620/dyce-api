@@ -32,10 +32,6 @@ export const UsageManager = () => {
   }, []);
 
   useEffect(() => {
-    console.log(usageData);
-  }, [usageData]);
-
-  useEffect(() => {
     if (!showCalendar) getHistory();
   }, [showCalendar]);
 
