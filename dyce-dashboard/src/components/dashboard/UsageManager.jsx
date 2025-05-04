@@ -177,7 +177,7 @@ export const UsageManager = () => {
           <BarGraph data={feeData} apiKeys={apiKeys} formatter={formatEth} allowDecimals={true} tooltipFormatter={formatEthWithConversion} />
           <div className='row'>
             <h3 className='pie-title'>Total</h3>
-            <PieGraph totals={feeTotals} apiKeys={apiKeys} formatter={formatEthWithConversion}/>
+            <PieGraph totals={feeTotals} apiKeys={apiKeys} formatter={formatEthWithConversion} innerFormatter={formatEth}/>
           </div>
         </div>
       </div>

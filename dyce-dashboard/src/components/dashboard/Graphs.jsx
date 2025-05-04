@@ -73,19 +73,25 @@ export const BarGraph = ({ data, apiKeys, formatter, allowDecimals, tooltipForma
   );
 }
 
-export const PieGraph = ({ totals, apiKeys, formatter }) => (
-  <ResponsiveContainer width={200}>
-    <PieChart>
-      <Tooltip formatter={formatter} />
-      <Pie data={totals} outerRadius="100%" innerRadius="75%" dataKey="value">
-        {apiKeys.map((apiKey, idx) => (
-          <Cell key={`cell-${idx}`} fill={getColor(idx)} />
-        ))}
-      </Pie>
-      <Legend />
-    </PieChart>
-  </ResponsiveContainer>
-);
+export const PieGraph = ({ totals, apiKeys, formatter, innerFormatter }) => {
+  const totalValue = totals.reduce((sum, item) => sum + item.value, 0);
+  return (
+    <ResponsiveContainer width={200}>
+      <PieChart>
+        <Tooltip formatter={formatter} />
+        <Pie data={totals} outerRadius="100%" innerRadius="75%" dataKey="value">
+          {apiKeys.map((apiKey, idx) => (
+            <Cell key={`cell-${idx}`} fill={getColor(idx)} />
+          ))}
+        </Pie>
+        <text x="50%" y="50%" dy="-0.15em" textAnchor="middle" fontSize={24} fill="#999">
+          {innerFormatter ? innerFormatter(totalValue) : (formatter ? formatter(totalValue) : totalValue)}
+        </text>
+        <Legend />
+      </PieChart>
+    </ResponsiveContainer>
+  );
+}
 
 const formatTimestamp = (timestamp) => {
   const date = new Date(timestamp);
