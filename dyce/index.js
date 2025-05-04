@@ -1,4 +1,4 @@
-import { connectWallet, approveLimit, getWalletAddress, transferTokens, permitLimit } from "./transact";
+import { connectWallet, approveLimit, getWalletAddress, transferTokens, permitLimit, receivePayment } from "./transact";
 
 const CONTRACT_ADDRESS = "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238";
 
@@ -118,6 +118,35 @@ class Dyce {
     } catch (Error) {
       console.error("Failed to transfer tokens!");
       console.log(Error);
+      return false;
+    }
+    return true;
+  }
+
+  async receivePayment(amount) {
+    if (!this.connected) throw new Error("Failed to connect to MetaMask!");
+    const businessWallet = await this.getWalletAddress();
+
+    // Generate permit
+    let permit;
+    try {
+      permit = await receivePayment(businessWallet, parseFloat(amount), CONTRACT_ADDRESS);
+    } catch (Error) {
+      console.error("Failed to transfer tokens!");
+      console.log(Error);
+      return false;
+    }
+
+    // Send permit
+    try {
+      const response = await this.request('receive-payment', 'POST', { permit, contractAddress: CONTRACT_ADDRESS });
+      const data = await response.json();
+      if (!response.ok) {
+        console.error(data.message || "Failed to send permit!");
+        return false;
+      }
+    } catch (Error) {
+      console.error(Error);
       return false;
     }
     return true;

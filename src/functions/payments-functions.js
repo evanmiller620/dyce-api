@@ -119,6 +119,27 @@ export const requestPayment = async (event) => {
     return successResponse({ message: "Processed payment successfully" });
 };
 
+export const receivePayment = async (event) => {
+    console.log("Received receive payment request");
+    const key = event.headers["x-api-key"];
+    if (!key) return unauthorizedResponse("API key required");
+
+    const apiKey = await getKey(key);
+    if (!apiKey) return unauthorizedResponse("Invalid API key");
+
+    const businessUser = await getUserById(apiKey.userId);
+    const businessWallet = businessUser.wallets.find(wallet => wallet.name == apiKey.wallet)
+    if (!businessWallet) return notFoundResponse("No wallet set for API key");
+
+    const { permit, contractAddress } = JSON.parse(event.body);
+    if (!permit || !contractAddress)
+        return badRequestResponse("Permit and contract address required");
+
+    // Submit permit to blockchain
+    await submitReceive(permit, businessWallet.key, contractAddress);
+    return successResponse({ message: "Payment received successfully" });
+}
+
 // ==============================
 // Transaction Functions
 // ==============================
@@ -138,6 +159,10 @@ const ERC2612_ABI = [
     "function permit(address owner, address spender, uint value, uint deadline, uint8 v, bytes32 r, bytes32 s) external",
     "function nonces(address owner) external view returns (uint)",
     "function DOMAIN_SEPARATOR() external view returns (bytes32)"
+]
+
+const ERC3009_ABI = [
+    "function receiveWithAuthorization(address from, address to, uint256 value, uint256 validAfter, uint256 validBefore, bytes32 nonce, uint8 v, bytes32 r, bytes32 s) external"
 ]
 
 export const getWalletBalance = async (address, contractAddress) => {
@@ -216,5 +241,39 @@ const submitPermit = async (permit, privateKey, contractAddress) => {
         throw new Error("Invalid signature: signer does not match owner");
     
     const tx = await contract.permit(owner, spender, value, deadline, v, r, s);
+    await tx.wait();
+}
+
+const submitReceive = async (permit, privateKey, contractAddress) => {
+    const { v, r, s, from, to, value, validAfter, validBefore, nonce } = permit;
+
+    const wallet = new ethers.Wallet(privateKey, provider);
+    const contract = new ethers.Contract(contractAddress, [...ERC20_ABI, ...ERC2612_ABI, ...ERC3009_ABI], wallet);
+    const chainId = (await provider.getNetwork()).chainId;
+
+    const domain = {
+        name: await contract.name(),
+        version: await contract.version(),
+        chainId: chainId,
+        verifyingContract: contractAddress
+    };
+    const types = {
+        ReceiveWithAuthorization: [
+            { name: "from", type: "address" },
+            { name: "to", type: "address" },
+            { name: "value", type: "uint256" },
+            { name: "validAfter", type: "uint256" },
+            { name: "validBefore", type: "uint256" },
+            { name: "nonce", type: "bytes32" },
+        ]
+    };
+    const values = { from, to, value, validAfter, validBefore, nonce };
+
+    // Verify signature before submitting permit
+    const signerAddress = ethers.verifyTypedData(domain, types, values, { r, s, v });
+    if (signerAddress.toLowerCase() !== from.toLowerCase())
+        throw new Error("Invalid signature: signer does not match owner");
+    
+    const tx = await contract.receiveWithAuthorization(from, to, value, validAfter, validBefore, nonce, v, r, s);
     await tx.wait();
 }

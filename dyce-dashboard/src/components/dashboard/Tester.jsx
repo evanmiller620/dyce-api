@@ -19,6 +19,14 @@ export const Tester = () => {
     setLoading(false);
   }
 
+  const onTransfer = async () => {
+    setError("");
+    setLoading(true);
+    const success = await dyce.receivePayment(amount);
+    if (!success) setError("Failed to transfer tokens");
+    setLoading(false);
+  }
+
   const onRequest = async () => {
     setError("");
     setLoading(true);
@@ -40,6 +48,7 @@ export const Tester = () => {
         <input type='number' placeholder='Amount' onChange={e => setAmount(e.target.value)}></input>
         <button onClick={onApprove} disabled={loading}>Approve Spending</button>
         <button onClick={onRequest} disabled={loading}>Request Payment</button>
+        <button onClick={onTransfer} disabled={loading}>One Time Pay</button>
         {error && <p className="error-message">{error}</p>}
       </div>
     </div>
