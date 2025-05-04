@@ -7,6 +7,7 @@ import { Tester } from './Tester'
 import '@/assets/styles/Dashboard.css'
 import Profile from "@/assets/icons/profile.svg";
 import Sidebar from './Sidebar'
+import Documentation from './Documentation'
 import { Route, Routes, Navigate } from 'react-router-dom'
 import { KeyUsage } from './KeyUsage'
 import { WalletHistory } from './WalletHistory'
@@ -23,8 +24,8 @@ export const Dashboard = () => {
       <Sidebar />
       <div className='dashboard-wrapper'>
         <nav>
-          <a href='dashboard'>Dashboard</a>
-          <a href='dashboard'>Docs</a>
+          <a href='keys'>Dashboard</a>
+          <a href='docs'>Docs</a>
           <button id="profile" onClick={() => setShowMenu(!showMenu)}>
             <img src={Profile} height="32" />
           </button>
@@ -41,6 +42,8 @@ export const Dashboard = () => {
             <Route path="/keys" element={<><KeyManager apiKey={apiKey} setApiKey={setApiKey} /><KeyUsage apiKey={apiKey} /></>} />
             <Route path="/wallets" element={<><WalletManager wallet={wallet} setWallet={setWallet} /><WalletHistory walletAddress={wallet} /></>} />
             <Route path="/usage" element={<UsageManager />} />
+            <Route path="/tester" element={<Tester />} />
+            <Route path="/docs" element={<Documentation />} />
           </Routes>
         </div>
       </div>

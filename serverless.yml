@@ -230,3 +230,10 @@ functions:
       - http:
           path: /get-fee-history
           method: POST
+
+  getWalletHistory:
+    handler: src/functions/dashboard-wallets-functions.getWalletHistory
+    events:
+      - http:
+          path: /get-wallet-history
+          method: POST
