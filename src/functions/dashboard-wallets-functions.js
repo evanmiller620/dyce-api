@@ -65,7 +65,7 @@ async function fetchWithRetry(url, retries = 4, delay = 500) {
       if (!res.ok) throw new Error(`HTTP error ${res.status}`);
       const data = await res.json();
       if (data.result && (data.status ? data.status === "1" : true)) return data;
-    } catch {}
+    } catch {console.log("Error fetching data, retrying...")}
     const wait = delay * 2 ** i;
     await new Promise(resolve => setTimeout(resolve, wait));
   }
