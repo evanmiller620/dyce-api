@@ -10,11 +10,13 @@ import Sidebar from './Sidebar'
 import { Route, Routes, Navigate } from 'react-router-dom'
 import { KeyUsage } from './KeyUsage'
 import { WalletHistory } from './WalletHistory'
+import { useAuth } from '../auth/AuthContext'
 
 export const Dashboard = () => {
   const [showMenu, setShowMenu] = useState(false);
   const [apiKey, setApiKey] = useState();
   const [wallet, setWallet] = useState();
+  const { user, getUser } = useAuth();
 
   return (
     <div className='db-wrapper'>
@@ -28,6 +30,7 @@ export const Dashboard = () => {
           </button>
           {showMenu &&
           <div id="menu">
+            <label>{localStorage.getItem('username')}</label>
             <Logout />
           </div>}
         </nav>
