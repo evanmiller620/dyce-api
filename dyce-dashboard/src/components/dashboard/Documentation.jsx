@@ -1,5 +1,7 @@
 import React from 'react';
 import '@/assets/styles/Dashboard.css'
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 
 const endpoints = [
   {
@@ -103,7 +105,7 @@ const Documentation = () => {
           ))}
         </section>
 
-        <section id="auth" style={{ textAlign: "center", marginBottom: "2rem" }}>
+        <section id="auth" style={{ textAlign: "left", marginBottom: "2rem" }}>
           <h2 className="title">Authentication</h2>
           <p>
             <strong>All endpoints require authentication via an API key.</strong><br />
@@ -113,8 +115,7 @@ const Documentation = () => {
 
         <section id="usage">
           <h2 className="title">Usage Example</h2>
-          <pre style={{ whiteSpace: 'pre-wrap', backgroundColor: '#eee', padding: '10px', borderRadius: '5px' }}>
-            <code>{
+          <SyntaxHighlighter language="javascript" style={oneDark}>{
 `const contractAddress = "0xContract";
 const permit = {
   // Example EIP-2612 permit structure
@@ -150,8 +151,7 @@ else console.error("Payment request failed");
 const receiveResult = await dyce.receivePayment(permit, contractAddress);
 if (receiveResult) console.log("Payment received");
 else console.error("Payment receive failed");`
-            }</code>
-          </pre>
+            }</SyntaxHighlighter>
         </section>
       </div>
     </div>
