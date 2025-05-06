@@ -23,7 +23,7 @@ const ERC3009_ABI = [
 var provider;
 
 export const connectWallet = () => {
-    if (!window.ethereum) throw new Error("MetaMask not installed!");
+    if (!window.ethereum) throw new Error("No wallet found!");
     provider = new ethers.BrowserProvider(window.ethereum);
 }
 
