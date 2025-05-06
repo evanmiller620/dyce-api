@@ -42,7 +42,7 @@ export const UsageManager = () => {
       const keyName = apiKey.name;
       const history = await getHistory(keyName);
       for (const [dateStr, value] of Object.entries(history)) {
-        const date = new Date(dateStr + "T00:00:00");
+        const date = new Date(dateStr + "T00:00:00Z");
         const startDate = new Date(range[0].startDate);
         startDate.setHours(0, 0, 0, 0);
         const endDate = new Date(range[0].endDate);

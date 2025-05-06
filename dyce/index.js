@@ -5,8 +5,7 @@ const CONTRACT_ADDRESS = "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238";
 class Dyce {
   constructor(apiKey) {
     this.apiKey = apiKey;
-    // this.baseURL = "https://0fxllf5l0m.execute-api.us-east-1.amazonaws.com/main/";
-    this.baseURL = "http://localhost:8080";
+    this.baseURL = "https://0fxllf5l0m.execute-api.us-east-1.amazonaws.com/main/";
     
     try {
       connectWallet();
@@ -101,6 +100,8 @@ class Dyce {
   }
 
   async requestPayment(userId, amount) {
+    console.log("Requesting payment...");
+    console.log(CONTRACT_ADDRESS);
     const response = await this.request('request-payment', 'POST', { userId: userId, amount: parseFloat(amount), contractAddress: CONTRACT_ADDRESS });
     const data = await response.json();
     if (!response.ok) {

@@ -4,8 +4,8 @@ export const CONTRACT_ADDRESS = "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238";
 
 class APIClient {
   constructor(token) {
-    this.baseURL = "http://localhost:8080"; // Local
-    // this.baseURL = "https://0fxllf5l0m.execute-api.us-east-1.amazonaws.com/main/"; // Deployed
+    // this.baseURL = "http://localhost:8080"; // Local
+    this.baseURL = "https://0fxllf5l0m.execute-api.us-east-1.amazonaws.com/main/"; // Deployed
     this.token = token;
   }
 
@@ -40,7 +40,8 @@ class APIClient {
       const response = await fetch(`${this.baseURL}/${endpoint}`, options);
       return response;
     } catch (error) {
-      throw new Error("Request failed: ", error);
+      console.error("Request failed: ", error);
+      return { ok: false, message: error.message };
     }
   }
 
