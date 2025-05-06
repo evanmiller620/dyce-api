@@ -5,7 +5,7 @@ const endpoints = [
   {
     name: 'get-wallet-address',
     method: 'GET',
-    path: '/api/get-wallet-address',
+    path: '/get-wallet-address',
     description: 'Retrieves the address for a specified wallet.',
     requestBody: null,
     responses: [
@@ -17,7 +17,7 @@ const endpoints = [
   {
     name: 'approve-spending',
     method: 'POST',
-    path: '/api/approve-spending',
+    path: '/approve-spending',
     description: 'Approves spending from a specified wallet for pay-as-you-go transactions.',
     requestBody: `{ "userId": "string", "wallet": "string", "amount": number }`,
     responses: [
@@ -29,7 +29,7 @@ const endpoints = [
   {
     name: 'request-payment',
     method: 'POST',
-    path: '/api/request-payment',
+    path: '/request-payment',
     description: 'Requests a one-time payment from a user (non-preapproved).',
     requestBody: `{ "userId": "string", "amount": number }`,
     responses: [
@@ -42,7 +42,7 @@ const endpoints = [
   {
     name: 'permit-spending',
     method: 'POST',
-    path: '/api/permit-spending',
+    path: '/permit-spending',
     description: 'Submits a signed EIP-2612 permit for a user, allowing spending without requiring a MetaMask popup.',
     requestBody: `{ "userId": "string", "permit": { ... }, "contractAddress": "string" }`,
     responses: [
@@ -55,7 +55,7 @@ const endpoints = [
   {
     name: 'receive-payment',
     method: 'POST',
-    path: '/api/receive-payment',
+    path: '/receive-payment',
     description: 'Submits a permit to collect payment from a user’s wallet. This completes a pay-as-you-go transaction.',
     requestBody: `{ "permit": { ... }, "contractAddress": "string" }`,
     responses: [
@@ -75,21 +75,7 @@ const Documentation = () => {
       </div>
 
       <div className="body-container"  style={{ margin: 10 }}>
-        <section id="overview" style={{ textAlign: "center" }}>
-          <h2 className="title">Overview</h2>
-          <p>
-            The Dyce API enables cryptocurrency transactions through simple endpoints.
-            You can integrate support for both standard and pay-as-you-go models.
-          </p>
-        </section>
-
-        <section id="auth" style={{ textAlign: "center" }}>
-          <h2 className="title">Authentication</h2>
-          <p>
-            <strong>All endpoints require an API key.</strong> Include it in the{' '}
-            <code>x-api-key</code> header.
-          </p>
-        </section>
+       
 
         <section id="endpoints">
           <h2 className="title">Endpoints</h2>
@@ -115,6 +101,14 @@ const Documentation = () => {
               )}
             </div>
           ))}
+        </section>
+
+        <section id="auth" style={{ textAlign: "center", marginBottom: "2rem" }}>
+          <h2 className="title">Authentication</h2>
+          <p>
+            <strong>All endpoints require authentication via an API key.</strong><br />
+            Include your key in the <code>x-api-key</code> request header for secure access.
+          </p>
         </section>
 
         <section id="usage">
