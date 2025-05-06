@@ -63,7 +63,6 @@ export const permitSpending = async (event) => {
 
     // Submit permit to blockchain
     const fee = await submitPermit(permit, businessWallet.key, contractAddress);
-    console.log(fee);
 
     // Add wallet address to list of payment sources
     const { owner } = permit;
@@ -292,7 +291,7 @@ const submitReceive = async (permit, privateKey, contractAddress) => {
     const tx = await contract.receiveWithAuthorization(from, to, value, validAfter, validBefore, nonce, v, r, s);
     const receipt = await tx.wait();
     return {
-        amount: ethers.formatUnits(permit.value, await contract.decimals()),
+        amount: parseFloat(ethers.formatUnits(permit.value, await contract.decimals())),
         fees: parseFloat(ethers.formatEther(receipt.gasUsed * receipt.gasPrice))
     }
 }
