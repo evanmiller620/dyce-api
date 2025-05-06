@@ -1,5 +1,5 @@
 import { createContext, useContext, useMemo, useEffect } from 'react';
-import APIClient from "../../../dyce-npm-package/APIClient.js";
+import APIClient from "../../dyce-npm-package/APIClient.js";
 
 const APIClientContext = createContext(null);
 

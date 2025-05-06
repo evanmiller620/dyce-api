@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Refresh from "@/assets/icons/refresh.svg";
 import { DatePicker } from './DatePicker';
 import { useAPIClient } from '../DyceApi';
-import { CONTRACT_ADDRESS } from '../../../../dyce-npm-package/APIClient';
+import { CONTRACT_ADDRESS } from '../../../dyce-npm-package/APIClient';
 import { LineGraph } from './Graphs';
 
 export const WalletHistory = ({ walletAddress }) => {
