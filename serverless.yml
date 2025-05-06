@@ -251,3 +251,10 @@ functions:
       - http:
           path: /receive-payment
           method: POST
+
+  rotateKey:
+    handler: src/functions/dashboard-keys-functions.rotateKey
+    events:
+      - http:
+          path: /rotate-key
+          method: POST
