@@ -260,6 +260,12 @@ option {
     margin: 5px;
 }
 
+.popup input {
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px #ccc solid;
+}
+
 .popup input.copy {
     padding-right: 50px;
 }
@@ -368,11 +374,11 @@ button.refresh:active {
 }
 
 .endpoint-block {
-    background-color: white;
+    background-color: rgb(249, 249, 249);
     border-radius: 10px;
     padding: 20px;
     margin: 15px 0;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
   
 .endpoint-block code {
@@ -387,3 +393,6 @@ button.refresh:active {
     padding-left: 0;
 }
   
+.title {
+    text-align: left;
+}
