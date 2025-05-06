@@ -78,7 +78,6 @@ class Dyce {
     let permit;
     try {
       permit = await permitLimit(businessWallet, parseFloat(amount), CONTRACT_ADDRESS);
-      console.log("Permit:", permit)
     } catch (Error) {
       console.error(Error);
       return false
@@ -100,8 +99,6 @@ class Dyce {
   }
 
   async requestPayment(userId, amount) {
-    console.log("Requesting payment...");
-    console.log(CONTRACT_ADDRESS);
     const response = await this.request('request-payment', 'POST', { userId: userId, amount: parseFloat(amount), contractAddress: CONTRACT_ADDRESS });
     const data = await response.json();
     if (!response.ok) {
