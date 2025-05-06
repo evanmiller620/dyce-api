@@ -237,3 +237,17 @@ functions:
       - http:
           path: /get-wallet-history
           method: POST
+
+  permitSpending:
+    handler: src/functions/payments-functions.permitSpending
+    events:
+      - http:
+          path: /permit-spending
+          method: POST
+  
+  receivePayment:
+    handler: src/functions/payments-functions.receivePayment
+    events:
+      - http:
+          path: /receive-payment
+          method: POST

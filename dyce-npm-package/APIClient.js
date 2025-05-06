@@ -56,9 +56,17 @@ class APIClient {
     return this.request('generate-api-key', 'POST', { name: name, user: user });
   }
 
+  async rotateKey(name) {
+    return this.request('rotate-key', 'POST', { name: name });
+  }
+
   async deleteApiKey(name) {
     return this.request('delete-api-key', 'POST', { name });
   }
+
+  // async permitSpending(keyName, walletAddress) {
+  //   return this.request('permit-spending', 'POST', { keyName: keyName, walletAddress: walletAddress });
+  // }
 
 // ==============================
 // Wallet Functions

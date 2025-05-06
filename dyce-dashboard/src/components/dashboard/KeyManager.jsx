@@ -1,11 +1,15 @@
 import React, { useEffect, useState } from 'react'
 import Trash from "@/assets/icons/trash.svg";
+import Rotate from "@/assets/icons/refresh.svg";
 import { KeyPopup } from './KeyPopup';
+import { RotatePopup } from './RotatePopup';
 import { useAPIClient } from '../DyceApi';
 
 export const KeyManager = ({ apiKey, setApiKey }) => {
   const [apiKeys, setApiKeys] = useState([]);
   const [showPopup, setShowPopup] = useState(false);
+  const [showRotatePopup, setShowRotatePopup] = useState(false);
+  const [rotatedKey, setRotatedKey] = useState("");
   const [deleting, setDeleting] = useState(false);
   const [wallets, setWallets] = useState([]);
   const api = useAPIClient();
@@ -45,11 +49,29 @@ export const KeyManager = ({ apiKey, setApiKey }) => {
   const deleteKey = async (name) => {
     setDeleting(true);
     const response = await api.deleteApiKey(name);
-    const data = await response.json();
     if (!response.ok) throw new Error("Failed to delete API key");
     setApiKeys(apiKeys.filter(key => key.name !== name));
     setDeleting(false);
     if (apiKey === name) setApiKey(null);
+  }
+
+  const rotateKey = async (name) => {
+    setDeleting(true);
+    const response = await api.rotateKey(name);
+    const data = await response.json();
+    if (!response.ok) throw new Error("Failed to rotate API key");
+    console.log(data);
+    const newKey = data.apiKey;
+    console.log(newKey)
+    setApiKeys(prevKeys =>
+      prevKeys.map(apikey =>
+        apikey.name === name ? { ...apikey, key: newKey } : apikey
+      )
+    );
+    setDeleting(false);
+    setRotatedKey(newKey);
+    setShowRotatePopup(true);
+    setDeleting(false);
   }
 
   const updateWallet = async (keyName, walletName) => {
@@ -64,6 +86,12 @@ export const KeyManager = ({ apiKey, setApiKey }) => {
         <h1>API Keys</h1>
         <button onClick={setShowPopup}>+ Create</button>
         {showPopup && <KeyPopup onClose={() => setShowPopup(false)} />}
+        {showRotatePopup && (
+          <RotatePopup
+            apiKey={rotatedKey}
+            onClose={() => setShowRotatePopup(false)}
+          />
+        )}
       </div>
       <div className='table-container body-container'>
         {apiKeys.length === 0 ? (
@@ -75,12 +103,14 @@ export const KeyManager = ({ apiKey, setApiKey }) => {
             <col style={{ width: "110px" }} />
             <col style={{ width: "150px" }} />
             <col style={{ width: "46px" }} />
+            <col style={{ width: "46px" }} />
           </colgroup>
           <thead>
             <tr>
               <th>Name</th>
               <th>Address</th>
               <th>Wallet</th>
+              <th></th>
               <th></th>
             </tr>
           </thead>
@@ -98,7 +128,12 @@ export const KeyManager = ({ apiKey, setApiKey }) => {
                   </select>
                 </td>
                 <td>
-                  <button className="trash" onClick={() => {deleteKey(name); e.stopPropagation();}} disabled={deleting}>
+                  <button className="trash" onClick={(e) => {rotateKey(name); e.stopPropagation();}} disabled={deleting} title="Rotate API key">
+                    <img src={Rotate} alt="X" height="24" />
+                  </button>
+                </td>
+                <td>
+                  <button className="trash" onClick={(e) => {deleteKey(name); e.stopPropagation();}} disabled={deleting} title="Delete API key">
                     <img src={Trash} alt="X" height="24" />
                   </button>
                 </td>

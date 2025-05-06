@@ -68,6 +68,48 @@ export const createKey = async (key, userId, name, walletName) => {
     await dynamo.send(command);
 }
 
+// Rotate an API key: copy old key data to new key, then delete old key
+export const rotateKeyDynamo = async (oldKey, newKey) => {
+    console.log(`Rotating key ${oldKey} to ${newKey}`);
+
+    const { Item } = await dynamo.send(new GetCommand({
+        TableName: KEYS_TABLE,
+        Key: { key: oldKey },
+    }));
+
+    if (!Item) {
+        console.error("Old key not found.");
+        throw new Error("Old key not found.");
+    }
+
+    // Create new item with safety check
+    try {
+        await dynamo.send(new PutCommand({
+            TableName: KEYS_TABLE,
+            Item: {
+                ...Item,
+                key: newKey,
+            },
+            ConditionExpression: "attribute_not_exists(#k)",
+            ExpressionAttributeNames: { "#k": "key" }
+        }));
+        console.log("New key inserted.");
+    } catch (err) {
+        console.error("Put failed:", err);
+        throw new Error("Failed to create new key, aborting rotation.");
+    }
+
+    // Only delete if put was successful
+    try {
+        await deleteKey(oldKey);
+        console.log("Old key deleted.");
+    } catch (err) {
+        console.error("Failed to delete old key:", err);
+        throw err;
+    }
+};
+
+
 // Delete API key
 export const deleteKey = async (key) => {
     const command = new DeleteCommand({

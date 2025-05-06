@@ -109,7 +109,12 @@ export const requestPayment = async (event) => {
     for (const wallet in walletAllowances) {
         if (!remainingTransferAmount) break;
         const transferAmount = Math.min(walletAllowances[wallet], remainingTransferAmount);
-        totalFees += await transfer(wallet, businessWallet.address, businessWallet.key, transferAmount, contractAddress);
+        try{
+            totalFees += await transfer(wallet, businessWallet.address, businessWallet.key, transferAmount, contractAddress);
+        } catch (error) {
+            console.error("Transfer error:", error);
+            return badRequestResponse("Transfer failed: " + error.message);
+        }
         remainingTransferAmount -= transferAmount;
     }
 
