@@ -11,10 +11,12 @@
   },
   "dependencies": {
     "delaunator": "^5.0.1",
+    "dyce": "^0.1.2",
     "react": "^19.0.0",
     "react-date-range": "^2.0.1",
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.1.5",
+    "react-syntax-highlighter": "^15.6.1",
     "recharts": "^2.15.2",
     "three": "^0.174.0"
   },

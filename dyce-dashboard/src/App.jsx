@@ -7,7 +7,6 @@ import { AuthProvider } from './components/auth/AuthContext.jsx'
 import { ProtectedRoute } from './components/auth/ProtectedRoute.jsx'
 import { APIClientProvider } from './components/DyceApi.jsx'
 import BackgroundCanvas from './components/Background.jsx'
-import { useMemo } from 'react'
 
 function App() {
   return (

@@ -1,7 +1,7 @@
 // import express from "express";
 import crypto from "crypto";
 import { getAuthThenUser } from "./dashboard-login-functions.js";
-import { getKey, createKey, deleteKey, getKeysByUser, setWalletName } from "./dynamo-functions.js"
+import { getKey, createKey, deleteKey, getKeysByUser, setWalletName, rotateKeyDynamo } from "./dynamo-functions.js"
 import dotenv from "dotenv";
 import { badRequestResponse, createdResponse, notFoundResponse, successResponse, unauthorizedResponse } from "./responses.js";
 dotenv.config();
@@ -86,3 +86,23 @@ export const getWallet = async (event) => {
 
     return successResponse({ address: apiKey.wallet });
 };
+
+export const rotateKey = async (event) => {
+    console.log("Received rotate key request");
+    const user = await getAuthThenUser(event);
+    if (!user) return unauthorizedResponse("Unauthorized");
+    const { name } = JSON.parse(event.body);
+    if (!name) return badRequestResponse("Key name required");
+
+    const userKeys = await getKeysByUser(user.id);
+    if (!userKeys) return notFoundResponse("API keys not found");
+
+    const apiKey = userKeys.find(apiKey => apiKey.name === name);
+    if (!apiKey) return notFoundResponse("API key not found");
+
+    const newKey = crypto.randomBytes(32).toString("hex");
+    const oldKey = apiKey.key;
+    console.log(`Rotating key ${oldKey} to ${newKey}`);
+    await rotateKeyDynamo(oldKey, newKey);
+    return successResponse({ apiKey: newKey });
+}

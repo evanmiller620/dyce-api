@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react'
-import Dyce from "dyce"
+import Dyce from "../../../../dyce"
 
 export const Tester = () => {
   const [apiKey, setApiKey] = useState("");
@@ -14,8 +14,16 @@ export const Tester = () => {
   const onApprove = async () => {
     setError("");
     setLoading(true);
-    const success = await dyce.approveSpending(userId, amount);
+    const success = await dyce.permitSpending(userId, amount);
     if (!success) setError("Failed to approve spending!");
+    setLoading(false);
+  }
+
+  const onTransfer = async () => {
+    setError("");
+    setLoading(true);
+    const success = await dyce.receivePayment(amount);
+    if (!success) setError("Failed to transfer tokens");
     setLoading(false);
   }
 
@@ -40,6 +48,7 @@ export const Tester = () => {
         <input type='number' placeholder='Amount' onChange={e => setAmount(e.target.value)}></input>
         <button onClick={onApprove} disabled={loading}>Approve Spending</button>
         <button onClick={onRequest} disabled={loading}>Request Payment</button>
+        <button onClick={onTransfer} disabled={loading}>One Time Pay</button>
         {error && <p className="error-message">{error}</p>}
       </div>
     </div>

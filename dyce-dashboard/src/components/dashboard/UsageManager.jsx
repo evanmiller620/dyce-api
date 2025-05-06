@@ -42,7 +42,7 @@ export const UsageManager = () => {
       const keyName = apiKey.name;
       const history = await getHistory(keyName);
       for (const [dateStr, value] of Object.entries(history)) {
-        const date = new Date(dateStr + "T00:00:00");
+        const date = new Date(dateStr + "T00:00:00Z");
         const startDate = new Date(range[0].startDate);
         startDate.setHours(0, 0, 0, 0);
         const endDate = new Date(range[0].endDate);
@@ -90,9 +90,11 @@ export const UsageManager = () => {
 
       const { startDate, endDate } = range[0];
       const dates = getDaysBetween(startDate, endDate);
-      await getHistoryData((key) => api.getUsageHistory(key), dates, setUsageData, setUsageTotals, data.apiKeys);
-      await getHistoryData((key) => api.getTxHistory(key), dates, setTxData, setTxTotals, data.apiKeys);
-      await getHistoryData((key) => api.getFeeHistory(key), dates, setFeeData, setFeeTotals, data.apiKeys);
+      await Promise.all([
+        getHistoryData((key) => api.getUsageHistory(key), dates, setUsageData, setUsageTotals, data.apiKeys),
+        getHistoryData((key) => api.getTxHistory(key), dates, setTxData, setTxTotals, data.apiKeys),
+        getHistoryData((key) => api.getFeeHistory(key), dates, setFeeData, setFeeTotals, data.apiKeys),
+      ]);
       setLoading(false);
     } catch (error) {
       console.error("Request failed: ", error);
@@ -163,7 +165,7 @@ export const UsageManager = () => {
           </div>
         </div>
 
-        <h3 style={{"marginBottom": "10px"}}>Transfers (USDT)</h3>
+        <h3 style={{"marginBottom": "10px"}}>Transfers (USDC)</h3>
         <div className='col' style={{ pointerEvents: loading ? 'none' : 'auto', opacity: loading ? 0.5 : 1 }}>
           <BarGraph data={txData} apiKeys={apiKeys} formatter={formatCurrency} allowDecimals={true} />
           <div className='row'>
@@ -177,7 +179,7 @@ export const UsageManager = () => {
           <BarGraph data={feeData} apiKeys={apiKeys} formatter={formatEth} allowDecimals={true} tooltipFormatter={formatEthWithConversion} />
           <div className='row'>
             <h3 className='pie-title'>Total</h3>
-            <PieGraph totals={feeTotals} apiKeys={apiKeys} formatter={formatEthWithConversion}/>
+            <PieGraph totals={feeTotals} apiKeys={apiKeys} formatter={formatEthWithConversion} innerFormatter={formatEth}/>
           </div>
         </div>
       </div>

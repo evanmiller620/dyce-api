@@ -1,4 +1,6 @@
-import { connectWallet, approveLimit, getWalletAddress, transferTokens } from "./transact";
+import { connectWallet, approveLimit, getWalletAddress, transferTokens, permitLimit, receivePayment } from "./transact";
+
+const CONTRACT_ADDRESS = "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238";
 
 class Dyce {
   constructor(apiKey) {
@@ -47,31 +49,60 @@ class Dyce {
     const businessWallet = await this.getWalletAddress();
     const clientWallet = await getWalletAddress();
     try {
-      await approveLimit(businessWallet, parseFloat(amount));
+      await approveLimit(businessWallet, parseFloat(amount), CONTRACT_ADDRESS);
     } catch (Error) {
-      console.error("Failed to approve spending!");
-      console.log(Error);
+      console.error(Error);
       return false;
     }
     try {
       const response = await this.request('approve-spending', 'POST', {
         userId: userId, wallet: clientWallet, amount: parseFloat(amount)
       });
-      const data = response.json();
+      const data = await response.json();
       if (!response.ok) {
         console.error(data.message || "Failed to set new spending limit in database!");
         return false;
       }
     } catch (Error) {
-      console.log(Error);
-      console.error("Failed to set new spending limit in database!");
+      console.error(Error);
+      return false;
+    }
+    return true;
+  }
+
+  async permitSpending(userId, amount) {
+    if (!this.connected) throw new Error("Failed to connect to MetaMask!");
+    const businessWallet = await this.getWalletAddress();
+
+    // Generate permit
+    let permit;
+    try {
+      permit = await permitLimit(businessWallet, parseFloat(amount), CONTRACT_ADDRESS);
+      console.log("Permit:", permit)
+    } catch (Error) {
+      console.error(Error);
+      return false
+    }
+
+    // Send permit
+    try {
+      const response = await this.request('permit-spending', 'POST', { userId, permit, contractAddress: CONTRACT_ADDRESS });
+      const data = await response.json();
+      if (!response.ok) {
+        console.error(data.message || "Failed to send permit!");
+        return false;
+      }
+    } catch (Error) {
+      console.error(Error);
       return false;
     }
     return true;
   }
 
   async requestPayment(userId, amount) {
-    const response = await this.request('request-payment', 'POST', { userId: userId, amount: parseFloat(amount) });
+    console.log("Requesting payment...");
+    console.log(CONTRACT_ADDRESS);
+    const response = await this.request('request-payment', 'POST', { userId: userId, amount: parseFloat(amount), contractAddress: CONTRACT_ADDRESS });
     const data = await response.json();
     if (!response.ok) {
       console.error(data.message || "Failed to process payment!");
@@ -84,10 +115,39 @@ class Dyce {
     if (!this.connected) throw new Error("Failed to connect to MetaMask!");
     const businessWallet = await this.getWalletAddress();
     try {
-      await transferTokens(businessWallet, parseFloat(amount));
+      await transferTokens(businessWallet, parseFloat(amount), CONTRACT_ADDRESS);
     } catch (Error) {
       console.error("Failed to transfer tokens!");
       console.log(Error);
+      return false;
+    }
+    return true;
+  }
+
+  async receivePayment(amount) {
+    if (!this.connected) throw new Error("Failed to connect to MetaMask!");
+    const businessWallet = await this.getWalletAddress();
+
+    // Generate permit
+    let permit;
+    try {
+      permit = await receivePayment(businessWallet, parseFloat(amount), CONTRACT_ADDRESS);
+    } catch (Error) {
+      console.error("Failed to transfer tokens!");
+      console.log(Error);
+      return false;
+    }
+
+    // Send permit
+    try {
+      const response = await this.request('receive-payment', 'POST', { permit, contractAddress: CONTRACT_ADDRESS });
+      const data = await response.json();
+      if (!response.ok) {
+        console.error(data.message || "Failed to send permit!");
+        return false;
+      }
+    } catch (Error) {
+      console.error(Error);
       return false;
     }
     return true;

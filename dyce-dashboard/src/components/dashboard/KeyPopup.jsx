@@ -29,6 +29,12 @@ export const KeyPopup = ({ onClose }) => {
     }
   }
 
+  const showKey = async (name) => {
+    setKeyReady(true);
+    setApiKey(name);
+    setError(null);
+  }
+
   const handleClose = async e => {
     e.preventDefault();
     setKeyReady(false);

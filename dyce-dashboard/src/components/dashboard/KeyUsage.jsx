@@ -35,7 +35,7 @@ export const KeyUsage = ({ apiKey }) => {
     let dataMap = {};
     const history = await getHistory(keyName);
     for (const [dateStr, value] of Object.entries(history)) {
-      const date = new Date(dateStr + "T00:00:00");
+      const date = new Date(dateStr + "T00:00:00Z");
       const startDate = new Date(range[0].startDate);
       startDate.setHours(0, 0, 0, 0);
       const endDate = new Date(range[0].endDate);
@@ -70,9 +70,11 @@ export const KeyUsage = ({ apiKey }) => {
 
       const { startDate, endDate } = range[0];
       const dates = getDaysBetween(startDate, endDate);
-      await getHistoryData((key) => api.getUsageHistory(key), dates, setUsageData, apiKey);
-      await getHistoryData((key) => api.getTxHistory(key), dates, setTxData, apiKey);
-      await getHistoryData((key) => api.getFeeHistory(key), dates, setFeeData, apiKey);
+      await Promise.all([
+        await getHistoryData((key) => api.getUsageHistory(key), dates, setUsageData, apiKey),
+        await getHistoryData((key) => api.getTxHistory(key), dates, setTxData, apiKey),
+        await getHistoryData((key) => api.getFeeHistory(key), dates, setFeeData, apiKey),
+      ]);
       setLoading(false);
     } catch (error) {
       console.error("Request failed: ", error);
@@ -123,10 +125,13 @@ export const KeyUsage = ({ apiKey }) => {
       return num.toExponential(1);
   }
 
+  const getTotal = (data, key) =>
+    data.reduce((sum, d) => sum + (typeof d[key] === 'number' ? d[key] : 0), 0);
+
   return (
     <div className='manager usage-wrapper key-usage-wrapper'>
       <div className='header-container'>
-        <h1>Usage</h1>
+        <h1>History</h1>
         <DatePicker range={range} setRange={setRange} show={showCalendar} setShow={setShowCalendar} />
         <button className="refresh" onClick={() => getHistory()} disabled={loading}>
           <img src={Refresh} alt="X" height="24" />
@@ -134,17 +139,26 @@ export const KeyUsage = ({ apiKey }) => {
       </div>
 
       <div className='body-container'>
-        <h3 style={{"marginBottom": "10px"}}>Requests</h3>
+        <div className="graph-header">
+          <h3 style={{"marginBottom": "10px"}}>Requests</h3>
+          <label>Total: {getTotal(usageData, apiKey)}</label>
+        </div>
         <div className='col' style={{ pointerEvents: loading ? 'none' : 'auto', opacity: loading ? 0.5 : 1 }}>
           <BarGraph data={usageData} apiKeys={[{name: apiKey}]} allowDecimals={false} />
         </div>
 
-        <h3 style={{"marginBottom": "10px"}}>Transfers (USDT)</h3>
+        <div className="graph-header">
+          <h3 style={{"marginBottom": "10px"}}>Transfers (USDC)</h3>
+          <label>Total: {formatCurrency(getTotal(txData, apiKey))}</label>
+        </div>
         <div className='col' style={{ pointerEvents: loading ? 'none' : 'auto', opacity: loading ? 0.5 : 1 }}>
           <BarGraph data={txData} apiKeys={[{name: apiKey}]} formatter={formatCurrency} allowDecimals={true} />
         </div>
-          
-        <h3 style={{"marginBottom": "10px"}}>Transfer Fees (ETH)</h3>
+
+        <div className='graph-header'>
+          <h3 style={{"marginBottom": "10px"}}>Transfer Fees (ETH)</h3>
+          <label>Total: {formatEthWithConversion(getTotal(feeData, apiKey))}</label>
+        </div>
         <div className='col' style={{ pointerEvents: loading ? 'none' : 'auto', opacity: loading ? 0.5 : 1 }}>
           <BarGraph data={feeData} apiKeys={[{name: apiKey}]} formatter={formatEth} allowDecimals={true} tooltipFormatter={formatEthWithConversion} />
         </div>

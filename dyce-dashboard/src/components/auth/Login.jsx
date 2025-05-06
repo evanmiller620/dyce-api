@@ -37,6 +37,7 @@ export const Login = () => {
         const accessToken = data.accessToken;
         api.setToken(accessToken);
         localStorage.setItem("accessToken", accessToken);
+        localStorage.setItem("username", username);
         setUser(data.userId);
       }
     }

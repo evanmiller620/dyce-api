@@ -1,10 +1,11 @@
 const apiKey = import.meta.env.VITE_API_KEY;
 
+export const CONTRACT_ADDRESS = "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238";
 
 class APIClient {
   constructor(token) {
-    this.baseURL = "http://localhost:8080"; // Local
-    // this.baseURL = "https://0fxllf5l0m.execute-api.us-east-1.amazonaws.com/main/"; // Deployed
+    // this.baseURL = "http://localhost:8080"; // Local
+    this.baseURL = "https://0fxllf5l0m.execute-api.us-east-1.amazonaws.com/main/"; // Deployed
     this.token = token;
   }
 
@@ -39,7 +40,8 @@ class APIClient {
       const response = await fetch(`${this.baseURL}/${endpoint}`, options);
       return response;
     } catch (error) {
-      throw new Error("Request failed: ", error);
+      console.error("Request failed: ", error);
+      return { ok: false, message: error.message };
     }
   }
 
@@ -55,9 +57,17 @@ class APIClient {
     return this.request('generate-api-key', 'POST', { name: name, user: user });
   }
 
+  async rotateKey(name) {
+    return this.request('rotate-key', 'POST', { name: name });
+  }
+
   async deleteApiKey(name) {
     return this.request('delete-api-key', 'POST', { name });
   }
+
+  // async permitSpending(keyName, walletAddress) {
+  //   return this.request('permit-spending', 'POST', { keyName: keyName, walletAddress: walletAddress });
+  // }
 
 // ==============================
 // Wallet Functions
@@ -72,7 +82,7 @@ class APIClient {
   }
 
   async getWallets() {
-    return this.request('get-wallets', 'GET');
+    return this.request('get-wallets', 'POST', { contractAddress: CONTRACT_ADDRESS });
   }
 
   async deleteWallet(name) {

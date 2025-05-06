@@ -93,6 +93,104 @@ On failure:
 { "message": "No wallet set for API key" }
 ```
 
+### `/api/permit-spending`
+
+- **Description**: Submits a signed [EIP-2612 permit](https://eips.ethereum.org/EIPS/eip-2612) for a user, allowing spending without requiring a MetaMask popup. Useful for enabling pay-as-you-go transactions programmatically.
+- **Method**: `POST`
+
+- **Request Body**:
+```json
+{
+  "userId": "string",
+  "permit": {
+    // EIP-2612 typed data
+  },
+  "contractAddress": "string"
+}
+```
+
+- **Response**:
+On success:
+```json
+200 OK
+{
+  "message": "Permit submitted successfully"
+}
+```
+
+On failure:
+```json
+400 Bad Request
+{
+  "message": "User ID, permit, and contract address required"
+}
+```
+
+```json
+401 Unauthorized
+{
+  "message": "API key required/Invalid"
+}
+```
+
+```json
+404 Not Found
+{
+  "message": "No wallet set for API key"
+}
+```
+
+---
+
+### `/api/receive-payment`
+
+- **Description**: Submits a signed permit to collect payment from a user’s wallet. This completes a pay-as-you-go transaction on-chain using EIP-2612-compatible tokens.
+- **Method**: `POST`
+
+- **Request Body**:
+```json
+{
+  "permit": {
+    // EIP-2612 typed data
+  },
+  "contractAddress": "string"
+}
+```
+
+- **Response**:
+On success:
+```json
+200 OK
+{
+  "message": "Payment received successfully"
+}
+```
+
+On failure:
+```json
+400 Bad Request
+{
+  "message": "Permit and contract address required"
+}
+```
+
+```json
+401 Unauthorized
+{
+  "message": "API key required/Invalid"
+}
+```
+
+```json
+404 Not Found
+{
+  "message": "No wallet set for API key"
+}
+```
+
+---
+
+
 ## Usage Example
 ```js
 import Dyce from "dyce"

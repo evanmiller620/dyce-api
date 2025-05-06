@@ -1,5 +1,5 @@
 import express from "express";
-import { generateApiKey, getApiKeys, deleteApiKey, setWallet, getWallet } from "../functions/dashboard-keys-functions.js";
+import { generateApiKey, getApiKeys, deleteApiKey, setWallet, getWallet, rotateKey } from "../functions/dashboard-keys-functions.js";
 
 const router = express.Router();
 
@@ -26,6 +26,11 @@ router.post("/set-wallet", async (req, res) => {
 
 router.post("/get-wallet", async (req, res) => {
     const response = await getWallet({ body: JSON.stringify(req.body), headers: req.headers });
+    res.status(response.statusCode).json(JSON.parse(response.body));
+});
+
+router.post("/rotate-key", async (req, res) => {
+    const response = await rotateKey({ body: JSON.stringify(req.body), headers: req.headers });
     res.status(response.statusCode).json(JSON.parse(response.body));
 });
 
