@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Refresh from "@/assets/icons/refresh.svg";
 import { DatePicker } from './DatePicker';
 import { useAPIClient } from '../DyceApi';
-import { CONTRACT_ADDRESS } from '../../../../dyce-npm-package/APIClient';
+import { CONTRACT_ADDRESS } from '../../../dyce-npm-package/APIClient';
 import { LineGraph } from './Graphs';
 
 export const WalletHistory = ({ walletAddress }) => {
@@ -50,7 +50,7 @@ export const WalletHistory = ({ walletAddress }) => {
     try {
       const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd');
       const data = await response.json();
-      setEthUsdPrice(data.ethereum.usd);
+      setEthUsdPrice(data.ethereum.usd / 100);
     } catch {
       setEthUsdPrice(null);
     }

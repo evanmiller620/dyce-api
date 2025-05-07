@@ -85,7 +85,7 @@ export const KeyUsage = ({ apiKey }) => {
     try {
       const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd');
       const data = await response.json();
-      setEthUsdPrice(data.ethereum.usd);
+      setEthUsdPrice(data.ethereum.usd / 100);
     } catch {
       setEthUsdPrice(null);
     }

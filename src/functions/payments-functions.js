@@ -62,7 +62,7 @@ export const permitSpending = async (event) => {
         return badRequestResponse("User ID, permit, and contract address required");
 
     // Submit permit to blockchain
-    await submitPermit(permit, businessWallet.key, contractAddress);
+    const fee = await submitPermit(permit, businessWallet.key, contractAddress);
 
     // Add wallet address to list of payment sources
     const { owner } = permit;
@@ -70,7 +70,10 @@ export const permitSpending = async (event) => {
     if (!user?.apiKeys?.[apiKey.key]?.wallets?.[owner])
         await addClientKeyIfNotExists(userId, apiKey.key);
     await addClientWallet(userId, apiKey.key, owner);
+
+    // Update history
     await updateUseCount(apiKey.key);
+    await updateFeeAmount(apiKey.key, fee);
     return successResponse({ message: "Permit submitted successfully" });
 }
 
@@ -141,7 +144,12 @@ export const receivePayment = async (event) => {
         return badRequestResponse("Permit and contract address required");
 
     // Submit permit to blockchain
-    await submitReceive(permit, businessWallet.key, contractAddress);
+    const { amount, fees } = await submitReceive(permit, businessWallet.key, contractAddress);
+
+    // Update history
+    await updateUseCount(apiKey.key);
+    await updateTxAmount(apiKey.key, amount);
+    await updateFeeAmount(apiKey.key, fees);
     return successResponse({ message: "Payment received successfully" });
 }
 
@@ -246,7 +254,8 @@ const submitPermit = async (permit, privateKey, contractAddress) => {
         throw new Error("Invalid signature: signer does not match owner");
     
     const tx = await contract.permit(owner, spender, value, deadline, v, r, s);
-    await tx.wait();
+    const receipt = await tx.wait();
+    return parseFloat(ethers.formatEther(receipt.gasUsed * receipt.gasPrice));
 }
 
 const submitReceive = async (permit, privateKey, contractAddress) => {
@@ -280,5 +289,9 @@ const submitReceive = async (permit, privateKey, contractAddress) => {
         throw new Error("Invalid signature: signer does not match owner");
     
     const tx = await contract.receiveWithAuthorization(from, to, value, validAfter, validBefore, nonce, v, r, s);
-    await tx.wait();
+    const receipt = await tx.wait();
+    return {
+        amount: parseFloat(ethers.formatUnits(permit.value, await contract.decimals())),
+        fees: parseFloat(ethers.formatEther(receipt.gasUsed * receipt.gasPrice))
+    }
 }
