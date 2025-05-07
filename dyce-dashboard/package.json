@@ -11,7 +11,8 @@
   },
   "dependencies": {
     "delaunator": "^5.0.1",
-    "dyce": "^0.1.2",
+    "dyce": "^0.2.1",
+    "ethers": "^6.13.7",
     "react": "^19.0.0",
     "react-date-range": "^2.0.1",
     "react-dom": "^19.0.0",
